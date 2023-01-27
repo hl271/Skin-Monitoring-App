@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ExpoTest0",
-    "slug": "ExpoTest0",
+    "name": "Skin Monitoring App",
+    "slug": "Skin Monitoring App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
