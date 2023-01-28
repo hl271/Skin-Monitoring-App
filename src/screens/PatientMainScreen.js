@@ -3,10 +3,7 @@ import { Text } from 'react-native-paper'
 import Background from '../components/Background'
 import Header from '../components/Header'
 import Button from '../components/Button'
-import TextInput from '../components/TextInput'
 import BackButton from '../components/BackButton'
-import { theme } from '../core/theme'
-import CameraScreen from './CameraScreen'
 
 export default function PatientMainScreen({ navigation }) {
     const name= <Text>Huy</Text>;
@@ -25,6 +22,7 @@ export default function PatientMainScreen({ navigation }) {
         <Button
           mode='outlined'
           icon="account-circle"
+          onPress={() => {navigation.navigate('ProfileScreen')}}
         >
             Edit your profile
         </Button>

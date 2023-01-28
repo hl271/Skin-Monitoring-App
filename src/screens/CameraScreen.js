@@ -1,121 +1,159 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, Image } from 'react-native'
-import { Entypo } from '@expo/vector-icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, StyleSheet, Image } from 'react-native';
+import Constants from 'expo-constants';
 import { Camera, CameraType } from 'expo-camera';
-import { useCamera } from 'react-native-camera-hooks';
-import Button from '../components/Button';
 import * as MediaLibrary from 'expo-media-library';
+import Buttone from '../components/Buttone';
 
-export default function CameraScreen( { navigation } ) {
+export default function CameraScreen({ navigation }) {
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [image, setImage] = useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+  const cameraRef = useRef(null);
+  const [currentDate, setCurrentDate] = useState(null);
 
-    const [hasCameraPermission, setHasCameraPermission] = useState(null);
-    const [image, setImage] = useState(null);
-    const [type, setType] = useState(Camera.Constants.Type.back);
-    const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
-    const [{cameraRef}, {takePicture}] = useCamera(null);
+  useEffect(() => {
+    var date = new Date().getDate(); //Current Date
+    var month = new Date().getMonth() + 1; //Current Month
+    var year = new Date().getFullYear(); //Current Year
+    var hours = new Date().getHours(); //Current Hours
+    var min = new Date().getMinutes(); //Current Minutes
+    setCurrentDate(
+      date + '/' + month + '/' + year 
+      + ' ' + hours + ':' + min
+    );
+  }, []);
 
-    useEffect(()=>{
-        (async ()=>{
-            MediaLibrary.requestPermissionsAsync();
-            const cameraStatus=await Camera.requestCameraPermissionsAsync();
-            setHasCameraPermission(cameraStatus.status==='granted');
-        })();
-    }, [])
+  useEffect(() => {
+    (async () => {
+      MediaLibrary.requestPermissionsAsync();
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      setHasCameraPermission(cameraStatus.status === 'granted');
+    })();
+  }, []);
 
-    const captureHandle=async ()=>{
-        if(cameraRef){
-            try{
-                const data=await takePicture();
-                setImage(data.uri);
-            } catch(e)
-            {
-                console.log(e);
-            }
-        }
+  const takePicture = async () => {
+    if (cameraRef) {
+      try {
+        const data = await cameraRef.current.takePictureAsync();
+        console.log(data);
+        setImage(data.uri);
+      } catch (error) {
+        console.log(error);
+      }
     }
+  };
 
-    const saveImage=async () => {
-        if(image){
-            try{
-                await MediaLibrary.createAlbumAsync(image);
-                alert('Picture Save!');
-                setImage(null);
-            } catch(e){
-                console.log(e);
-            }
-        }
+  const savePicture = async () => {
+    if (image) {
+      try {
+        () => navigation.navigate('ResultScreen', { image, currentDate });
+      } catch (error) {
+        console.log(error);
+      }
     }
+  };
 
-    if(hasCameraPermission==false){
-        return <Text>No access to camera</Text>
-    }
+  if (hasCameraPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
 
-    return (
-        <View style={styles.body}>
-            {!image ?
-            <Camera
-                style={styles.camera}
-                ref={cameraRef}
-                type={type}
-                flashMode={flash}
+  return (
+    <View style={styles.container}>
+      {!image ? (
+        <Camera
+          style={styles.camera}
+          type={type}
+          ref={cameraRef}
+          flashMode={flash}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingHorizontal: 30,
+            }}
+          >
+            <Buttone
+              title=""
+              icon="retweet"
+              onPress={() => {
+                setType(
+                  type === CameraType.back ? CameraType.front : CameraType.back
+                );
+              }}
             />
-            :
-            <Image source={{uri: image}} style={styles.camera}/>
-            }
+            <Buttone
+              onPress={() =>
+                setFlash(
+                  flash === Camera.Constants.FlashMode.off
+                    ? Camera.Constants.FlashMode.on
+                    : Camera.Constants.FlashMode.off
+                )
+              }
+              icon="flash"
+              color={flash === Camera.Constants.FlashMode.off ? 'gray' : '#fff'}
+            />
+          </View>
+        </Camera>
+      ) : (
+        <Image source={{ uri: image }} style={styles.camera} />
+      )}
 
-
-            <View>
-                {image ? 
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    paddingHorizontal: 50
-                }}
-                >
-                    <TouchableOpacity onPress={()=>setImage(null)} style={styles.button}>
-                        <Entypo name={"retweet"} size={28} color={'#f1f1f1'}/>
-                        <Text style={styles.text}>Re-take</Text>
-                    </TouchableOpacity> 
-                    <TouchableOpacity onPress={saveImage} style={styles.button}>
-                        <Entypo name={"check"} size={28} color={'#f1f1f1'}/>
-                        <Text style={styles.text}>Save</Text>
-                    </TouchableOpacity> 
-                </View>  
-                :    
-                <TouchableOpacity onPress={captureHandle} style={styles.button}>
-                    <Entypo name={"camera"} size={28} color={'#f1f1f1'}/>
-                    <Text style={styles.text}>Take a photo</Text>
-                </TouchableOpacity>
-                }
-            </View>
-        </View>
-    )
+      <View style={styles.controls}>
+        {image ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingHorizontal: 50,
+            }}
+          >
+            <Buttone
+              title="Re-take"
+              onPress={() => setImage(null)}
+              icon="retweet"
+            />
+            <Buttone title="Save" onPress={savePicture} icon="check" />
+          </View>
+        ) : (
+          <Buttone title="Take a picture" onPress={takePicture} icon="camera" />
+        )}
+      </View>
+    </View>
+  );
 }
 
-const styles=StyleSheet.create({
-    body: {
-        flex:1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingBottom: 15
-    },
-    camera: {
-        flex: 1,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'flex-end'
-    },
-    text: {
-        fontWeight: 'bold',
-        fontSize: 16,
-        color: '#f1f1f1',
-        marginLeft: 10
-    },
-    button: {
-        height: 40,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center'
-    }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: Constants.statusBarHeight,
+    backgroundColor: '#000',
+    padding: 8,
+  },
+  controls: {
+    flex: 0.5,
+  },
+  button: {
+    height: 40,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#E9730F',
+    marginLeft: 10,
+  },
+  camera: {
+    flex: 5,
+    borderRadius: 20,
+  },
+  topControls: {
+    flex: 1,
+  },
 });
