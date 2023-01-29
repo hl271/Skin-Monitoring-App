@@ -48,7 +48,9 @@ export default function CameraScreen({ navigation }) {
   const savePicture = async () => {
     if (image) {
       try {
-        () => navigation.navigate('ResultScreen', { image, currentDate });
+        const asset = await MediaLibrary.createAssetAsync(image);   // image
+        navigation.navigate('ResultScreen', { image, currentDate });
+        console.log("take photo successfully");
       } catch (error) {
         console.log(error);
       }
