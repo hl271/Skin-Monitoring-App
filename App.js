@@ -11,7 +11,8 @@ import {
   ResetPasswordScreen,
   PatientMainScreen,
   CameraScreen,
-  ProfileScreen
+  ProfileScreen,
+  ResultScreen
 } from './src/screens'
 
 const Stack = createStackNavigator()
