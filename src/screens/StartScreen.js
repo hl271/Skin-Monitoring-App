@@ -15,15 +15,9 @@ export default function StartScreen({ navigation }) {
       </Paragraph>
       <Button
         mode="contained"
-        onPress={() => navigation.navigate('DoctorLoginScreen')}
+        onPress={() => navigation.navigate('LoginScreen')}
       >
-        Login as a Doctor
-      </Button>
-      <Button
-        mode="contained"
-        onPress={() => navigation.navigate('PatientLoginScreen')}
-      >
-        Login as a Patient
+        Login
       </Button>
       <Button
         mode="outlined"

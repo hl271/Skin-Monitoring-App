@@ -11,8 +11,10 @@ import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
+import { NativeBaseProvider, Radio, Box, ListItem, Stack } from 'native-base'
 
 export default function RegisterScreen({ navigation }) {
+  const [per, setPer] = useState("doctor")
   const [name, setName] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
@@ -34,10 +36,27 @@ export default function RegisterScreen({ navigation }) {
   }
 
   return (
+    <NativeBaseProvider>
     <Background>
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>Create Account</Header>
+      <Radio.Group name="permission" accessibilityLabel='person' value={per} onChange={nextValue=>{setPer(nextValue);}}>
+         <Stack direction={{
+            base: "row",
+            md: "row"
+          }} alignItems={{
+            base: "flex-start",
+            md: "center"
+          }} space={4} w="75%" maxW="300px">
+          <Radio value="doctor" my={1}>
+            Doctor
+          </Radio>
+          <Radio value="patient" my={1}>
+            Patient
+          </Radio>
+         </Stack>
+      </Radio.Group>
       <TextInput
         label="Name"
         returnKeyType="next"
@@ -81,6 +100,7 @@ export default function RegisterScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </Background>
+    </NativeBaseProvider>
   )
 }
 
