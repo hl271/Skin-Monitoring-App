@@ -29,6 +29,13 @@ export default function PatientMainScreen({ navigation }) {
         <Button
           mode='outlined'
           icon="view-list"
+          onPress={()=>{navigation.navigate('AppointmentScreen')}}
+        >
+            Set an Appointment
+        </Button>
+        <Button
+          mode='outlined'
+          icon="view-list"
         >
             View your detection history
         </Button>

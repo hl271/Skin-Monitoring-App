@@ -8,6 +8,8 @@ import { StyleSheet } from 'react-native';
     HStack,
     VStack,
     ScrollView,
+    Form,
+    Item,
     NativeBaseProvider,
     Text,
   } from "native-base";
@@ -15,17 +17,24 @@ import Header from '../components/Header';
 import { theme } from '../core/theme';
 import Button from '../components/Button';
 import BackButton from '../components/BackButton';
+import {Picker} from '@react-native-picker/picker';
 
 import Paragraph from '../components/Paragraph';
 
 export default function AppointmentDetailScreen({ route, navigation }) {
     const doctor=route.params;
-    const [availDate, setAvailDate]=useState(null);
+    const [availDates, setAvailDates]=useState(["22/11/23", "22/33/22"]);
+    const [date, setDate]=useState(null);
+
+    const onSubmit=()=>{
+        setAvailDates(["22/11/23", "22/33/22"]);
+        navigation.navigate("PatientMainScreen");
+    };
 
     return (
         <NativeBaseProvider>
+            <BackButton goBack={navigation.goBack} />
             <Box safeArea flex={1}>
-                <BackButton goBack={navigation.goBack} />
                 <ScrollView px={5} showsVerticalScrollIndicator={false} flex={1}>
                         <VStack space={2} >
                             <HStack space={5} pt="6" pb="6" flex={1}>
@@ -46,7 +55,19 @@ export default function AppointmentDetailScreen({ route, navigation }) {
                             <Paragraph style={styles.paragraph}>
                                 Plastic is an excellent material to protect food
                             </Paragraph>
-                            <Button mode="contained" onPress={()=>navigation.navigate("AppointmentScreen")}>Submit</Button>
+                            <Header>Available Schedule:</Header>
+
+                            <Picker
+                                selectedValue={date}
+                                onValueChange={(itemValue, itemIndex) =>
+                                    setDate(itemValue)
+                                }>
+                                {availDates.map((availDate)=>(
+                                    <Picker.Item label={availDate} value={availDate} key={availDate}/>
+                                ))}
+                            </Picker>
+
+                            <Button mode="contained" onPress={onSubmit}>Submit</Button>
                         </VStack>
                     </ScrollView>
             </Box>
