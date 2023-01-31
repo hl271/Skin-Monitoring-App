@@ -15,7 +15,7 @@ import Header from '../components/Header';
 import { theme } from '../core/theme';
 import BackButton from '../components/BackButton';
 
-export default function AppointmentScreen({ navigation }) {
+export default function DoctorsListScreen({ navigation }) {
     return (
         <NativeBaseProvider>
             <Box safeArea flex={1}  alignItems="center">

@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^13.0.0",
+    "@react-native-picker/picker": "2.4.8",
+    "@react-navigation/bottom-tabs": "^6.5.3",
     "@react-navigation/native": "^6.1.2",
     "@react-navigation/stack": "^6.3.11",
     "deprecated-react-native-prop-types": "^4.0.0",
@@ -36,8 +38,8 @@
     "react-native-sliding-panes": "^1.0.3",
     "react-native-status-bar-height": "^2.6.0",
     "react-native-svg": "13.4.0",
-    "react-navigation": "^4.4.4",
-    "@react-native-picker/picker": "2.4.8"
+    "react-native-tab-view": "^3.3.4",
+    "react-navigation": "^4.4.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

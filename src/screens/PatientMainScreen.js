@@ -14,7 +14,7 @@ export default function PatientMainScreen({ navigation }) {
         <Header>Hello { name },</Header>
         <Button
           mode='outlined'
-          icon="account-circle"
+          icon="camera"
           onPress={() => {navigation.navigate('CameraScreen')}}
         >
             Take your skin's photo
@@ -28,7 +28,7 @@ export default function PatientMainScreen({ navigation }) {
         </Button>
         <Button
           mode='outlined'
-          icon="view-list"
+          icon="plus-box"
           onPress={()=>{navigation.navigate('AppointmentScreen')}}
         >
             Set an Appointment
@@ -36,6 +36,7 @@ export default function PatientMainScreen({ navigation }) {
         <Button
           mode='outlined'
           icon="view-list"
+          onPress={()=>navigation.navigate('HistoryScreen')}
         >
             View your detection history
         </Button>

@@ -12,8 +12,11 @@ import {
   CameraScreen,
   ProfileScreen,
   ResultScreen,
-  AppointmentScreen,
-  AppointmentDetailScreen
+  DoctorsListScreen,
+  AppointmentDetailScreen,
+  HistoryScreen,
+  DetectionHistoryScreen,
+  AppointmentHistoryScreen
 } from './src/screens'
 
 const Stack = createStackNavigator()
@@ -35,8 +38,12 @@ export default function App() {
           <Stack.Screen name="CameraScreen" component={CameraScreen} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           <Stack.Screen name="ResultScreen" component={ResultScreen} />
-          <Stack.Screen name="AppointmentScreen" component={AppointmentScreen} />
+          <Stack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
           <Stack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
+          <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
+          <Stack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
+          <Stack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
+
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}
