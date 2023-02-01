@@ -14,22 +14,22 @@ export default function DoctorMainScreen({ navigation }) {
         <Header>Hello { name },</Header>
         <Button
           mode='outlined'
-          icon="camera"
+          icon="calendar-month"
           onPress={() => {navigation.navigate('ScheduleScreen')}}
         >
             My Schedule
         </Button>
         <Button
           mode='outlined'
-          icon="account-circle"
+          icon="format-list-text"
           onPress={() => {navigation.navigate('ProfileScreen')}}
         >
             My Appointment
         </Button>
         <Button
           mode='outlined'
-          icon="plus-box"
-          onPress={()=>{navigation.navigate('DoctorsListScreen')}}
+          icon="account-circle"
+          onPress={()=>{navigation.navigate('ProfileScreen')}}
         >
             Edit Profile
         </Button>
