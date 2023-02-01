@@ -19,7 +19,8 @@ import {
   AppointmentHistoryScreen,
   DoctorMainScreen,
   ScheduleScreen,
-  AddNewScheduleScreen
+  AddNewScheduleScreen,
+  MyAppointmentScreen
 } from './src/screens'
 
 const Stack = createStackNavigator()
@@ -49,6 +50,7 @@ export default function App() {
           <Stack.Screen name="DoctorMainScreen" component={DoctorMainScreen} />
           <Stack.Screen name="ScheduleScreen" component={ScheduleScreen} />
           <Stack.Screen name="AddNewScheduleScreen" component={AddNewScheduleScreen} />
+          <Stack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
 
           <Stack.Screen
             name="ResetPasswordScreen"

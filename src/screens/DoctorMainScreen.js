@@ -22,7 +22,7 @@ export default function DoctorMainScreen({ navigation }) {
         <Button
           mode='outlined'
           icon="format-list-text"
-          onPress={() => {navigation.navigate('ProfileScreen')}}
+          onPress={() => {navigation.navigate('MyAppointmentScreen')}}
         >
             My Appointment
         </Button>
