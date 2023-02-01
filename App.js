@@ -5,15 +5,18 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { theme } from './src/core/theme'
 import {
   StartScreen,
-  DoctorLoginScreen,
-  PatientLoginScreen,
+  LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
   PatientMainScreen,
   CameraScreen,
   ProfileScreen,
   ResultScreen,
-  AppointmentScreen
+  DoctorsListScreen,
+  AppointmentDetailScreen,
+  HistoryScreen,
+  DetectionHistoryScreen,
+  AppointmentHistoryScreen
 } from './src/screens'
 
 const Stack = createStackNavigator()
@@ -29,14 +32,18 @@ export default function App() {
           }}
         >
           <Stack.Screen name="StartScreen" component={StartScreen} />
-          <Stack.Screen name="DoctorLoginScreen" component={DoctorLoginScreen} />
-          <Stack.Screen name="PatientLoginScreen" component={PatientLoginScreen} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="PatientMainScreen" component={PatientMainScreen} />
           <Stack.Screen name="CameraScreen" component={CameraScreen} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           <Stack.Screen name="ResultScreen" component={ResultScreen} />
-          <Stack.Screen name="AppointmentScreen" component={AppointmentScreen} />
+          <Stack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
+          <Stack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
+          <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
+          <Stack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
+          <Stack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
+
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

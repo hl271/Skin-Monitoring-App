@@ -51,7 +51,7 @@ export default function ResultScreen({ route, navigation }) {
                             <Paragraph style={styles.paragraph}>
                                 Plastic is an excellent material to protect food
                             </Paragraph>
-                            <Button mode="contained" onPress={()=>navigation.navigate("AppointmentScreen")}>Set an Appointment</Button>
+                            <Button mode="contained" onPress={()=>navigation.navigate("DoctorsListScreen")}>Set an Appointment</Button>
                         </VStack>
                     </ScrollView>
                 </Box>
