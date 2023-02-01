@@ -29,7 +29,7 @@ export default function PatientMainScreen({ navigation }) {
         <Button
           mode='outlined'
           icon="plus-box"
-          onPress={()=>{navigation.navigate('AppointmentScreen')}}
+          onPress={()=>{navigation.navigate('DoctorsListScreen')}}
         >
             Set an Appointment
         </Button>

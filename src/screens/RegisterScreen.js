@@ -29,10 +29,20 @@ export default function RegisterScreen({ navigation }) {
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
+    if (per=="doctor")
+    {
+      navigation.reset({
       index: 0,
-      routes: [{ name: 'PatientMainScreen' }],
-    })
+      routes: [{ name: 'DoctorMainScreen' }],
+      })
+    }
+    else
+    {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'PatientMainScreen' }],
+        })
+    }
   }
 
   return (
