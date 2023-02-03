@@ -118,13 +118,23 @@ export default function RegisterScreen({ navigation }) {
       }
     });
   }, [])
-
+  
   if (loggedIn) {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'PatientMainScreen' }],
-    })
+    if (per=="doctor") {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'DoctorMainScreen' }],
+        })
+      }
+    else
+      {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'PatientMainScreen' }],
+          })
+      }
   }
+  
   return (
     <NativeBaseProvider>
     <Background>
