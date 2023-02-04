@@ -99,7 +99,7 @@ export default function RegisterScreen({ navigation }) {
         console.log("Create new user on hasura")
         console.log(hasuraRes)
         
-        authContext.signIn(userRole, userToken, userEmail)    
+        authContext.signIn(userRole, userToken, userEmail, userFullName)    
 
       } else {
         console.log("Hasura claims not exits")
@@ -119,6 +119,9 @@ export default function RegisterScreen({ navigation }) {
     }
     
   }
+  // if (authContext.authState.isSigningIn) {
+  //   console.log("isSigningIn true")
+  // } else console.log("isSigningIn false")
 
   useEffect(() => {
     
@@ -180,6 +183,7 @@ export default function RegisterScreen({ navigation }) {
         mode="contained"
         onPress={onSignUpPressed}
         style={{ marginTop: 24 }}
+        loading={authContext.authState.isSigningIn}
       >
         Sign Up
       </Button>

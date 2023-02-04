@@ -12,14 +12,9 @@ import { patientReducer } from '../Reducers'
 
 export default function PatientMainScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)
+  const {patientInfo, 
+        addNewPatient} = React.useContext(PatientGlobalState)
   const {auth} = React.useContext(FirebaseContext)
-
-  const [patientState, patientDispatch] = React.useReducer(patientReducer, {
-    fullname: null,
-    email: null,
-    gender: null,
-    birthday: null
-  })
 
   
   const onSignOutPressed = async() => {
@@ -31,37 +26,41 @@ export default function PatientMainScreen({ navigation }) {
       console.log(error.message)
     }
   }
-
+  
   React.useEffect(()=> {
-    const fetchPatient = async (email) => {
-      try {
-        const query = `query findPatientByEmail($email: String!) {
-          patient(where: {email: {_eq: $email}}) {
-            patientid
-            gender
-            fullname
-            email
-            birthday
-          }
-        }`
-        const graphqlReq = { "query": query, "variables": { "email": email} }
-        let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-          method: 'POST',
-          headers: {
-            'content-type' : 'application/json', 
-            'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
-          },
-          body: JSON.stringify(graphqlReq)
-        })
-        hasuraRes = await hasuraRes.json()
-        console.log("Fetched user on hasura")
-      } catch (error) {
-        
-      }
+    if (authContext.authState.signedIn && !patientInfo.fullname) {
+      const {userFullName, userEmail} = authContext.authState
+      addNewPatient(userEmail, userFullName)
     }
-    fetchPatient()
-  })
-  const name= <Text>Huy</Text>;
+    // const fetchPatient = async (email) => {
+    //   try {
+    //     const query = `query findPatientByEmail($email: String!) {
+    //       patient(where: {email: {_eq: $email}}) {
+    //         patientid
+    //         gender
+    //         fullname
+    //         email
+    //         birthday
+    //       }
+    //     }`
+    //     const graphqlReq = { "query": query, "variables": { "email": email} }
+    //     let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+    //       method: 'POST',
+    //       headers: {
+    //         'content-type' : 'application/json', 
+    //         'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+    //       },
+    //       body: JSON.stringify(graphqlReq)
+    //     })
+    //     hasuraRes = await hasuraRes.json()
+    //     console.log("Fetched user on hasura")
+    //   } catch (error) {
+        
+    //   }
+    // }
+    // fetchPatient()
+  }, [])
+  const name= <Text>{patientInfo.fullname}</Text>;
 
   return (
     <Background>

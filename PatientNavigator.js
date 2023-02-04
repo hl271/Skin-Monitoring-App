@@ -1,10 +1,4 @@
 import React, { useState } from 'react'
-import { createStackNavigator } from '@react-navigation/stack'
-import { Text } from 'react-native-paper'
-import Background from './src/components/Background'
-import Header from './src/components/Header'
-import Button from './src/components/Button'
-import BackButton from './src/components/BackButton'
 import {
   PatientMainScreen,
   CameraScreen,
@@ -19,6 +13,8 @@ import {
 
 import { AuthContext, FirebaseContext, PatientGlobalState } from './src/Contexts'
 import { patientReducer } from './src/Reducers'
+import { createStackNavigator } from '@react-navigation/stack'
+import ACTION_TYPES from './src/ActionTypes'
 
 const PatientStack = createStackNavigator()
 
@@ -26,48 +22,25 @@ export default function PatientNavigator()  {
   const authContext = React.useContext(AuthContext)
   const {auth} = React.useContext(FirebaseContext)
 
-  const [patientInfo, patientDispatch] = React.useReducer(patientReducer, {
+  const [patientInfo, patientInfoDispatch] = React.useReducer(patientReducer, {
     fullname: null,
     email: null,
     gender: null,
     birthday: null
   })
 
-  const patientGlobalState = React.useMemo(() => {
+  const patientContext = React.useMemo(() => ({
+    addNewPatient: (email, fullname) => {
+      patientInfoDispatch({type: ACTION_TYPES.PATIENT.ADD_PATIENT, email, fullname})
+    },
     patientInfo
-  }, [patientInfo])
+  }), [patientInfo])
 
   React.useEffect(()=> {
-    const fetchPatient = async (email) => {
-      try {
-        const query = `query findPatientByEmail($email: String!) {
-          patient(where: {email: {_eq: $email}}) {
-            patientid
-            gender
-            fullname
-            email
-            birthday
-          }
-        }`
-        const graphqlReq = { "query": query, "variables": { "email": email} }
-        let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-          method: 'POST',
-          headers: {
-            'content-type' : 'application/json', 
-            'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
-          },
-          body: JSON.stringify(graphqlReq)
-        })
-        hasuraRes = await hasuraRes.json()
-        console.log("Fetched user on hasura")
-      } catch (error) {
-        
-      }
-    }
-    fetchPatient()
+    
   })
   return (
-    <PatientGlobalState.Provider value={patientGlobalState}>
+    <PatientGlobalState.Provider value={patientContext}>
       <PatientStack.Navigator
         initialRouteName="PatientMainScreen"
         screenOptions={{

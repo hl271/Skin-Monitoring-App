@@ -61,10 +61,10 @@ export default function LoginScreen({ navigation }) {
 
       const query = `query findUserByEmail($email: String!) {
         doctor(where: {email: {_eq: $email}}) {
-          doctorid
+          fullname
         }
         patient(where: {email: {_eq: $email}}) {
-          patientid
+          fullname
         }
       }`
 
@@ -79,17 +79,19 @@ export default function LoginScreen({ navigation }) {
       })
       hasuraRes = await hasuraRes.json()
       console.log("Fetched user on hasura")
-      let role
+      let role, userFullName
       if (hasuraRes.data.doctor.length > 0) {
         role = "doctor"
+        userFullName = hasuraRes.data.doctor[0].fullname
       }
       else if (hasuraRes.data.patient.length > 0) {
         role = "patient"
+        userFullName = hasuraRes.data.patient[0].fullname
       }
       else throw "No user found on Hasura" 
       console.log("Logged in as ", role)
       
-      authContext.signIn(role, userToken, email.value)
+      authContext.signIn(role, userToken, email.value, userFullName)
       
     } catch(error) {
       console.log("Error occured while sign in")
@@ -158,7 +160,7 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View>
-      <Button mode="contained" onPress={onLoginPressed}>
+      <Button mode="contained" loading={authContext.authState.isSigningIn} onPress={onLoginPressed}>
         Login
       </Button>
       <View style={styles.row}>

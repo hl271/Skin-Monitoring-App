@@ -7,6 +7,8 @@ export function authReducer(prevState, action) {
                 ...prevState,
                 userToken: action.userToken,
                 userRole: action.userRole,
+                userEmail: action.userEmail,
+                userFullName: action.userFullName,
                 signedIn: true
             }
         }
@@ -15,13 +17,15 @@ export function authReducer(prevState, action) {
                 ...prevState,
                 userToken: null,
                 userRole: null,
+                userEmail: null,
+                userFullName: null,
                 signedIn: false
             }
         }
         case ACTION_TYPES.AUTH.SIGNING_IN: {
             return  {
                 ...prevState,
-                isSigningIn: true
+                isSigningIn: action.isSigningIn
             }
         }
         default: {
@@ -47,6 +51,13 @@ export function doctorReducer(prevState, action) {
                 isverified: action.isverified
             }
         } 
+        case ACTION_TYPES.DOCTOR.ADD_DOCTOR: {
+            return {
+                ...prevState,
+                email: action.email,
+                fullname: action.fullname
+            }
+        }
         default: {
             throw Error('Unknown action: ' + action.type)
         }
@@ -67,7 +78,7 @@ export function patientReducer(prevState, action) {
             return {
                 ...prevState,
                 email: action.email,
-                fullname: action.fullname,
+                fullname: action.fullname
             }
         }
         default: {

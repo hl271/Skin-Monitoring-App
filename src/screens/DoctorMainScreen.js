@@ -11,15 +11,12 @@ import { AuthContext, FirebaseContext, DoctorGlobalState } from '../Contexts'
 import { doctorReducer } from '../Reducers'
 
 export default function DoctorMainScreen({ navigation }) {
+  // console.log("doctormainscreen")
   const authContext = React.useContext(AuthContext)
+  const {doctorInfo, addNewDoctor} = React.useContext(DoctorGlobalState)
   const {auth} = React.useContext(FirebaseContext)
 
-  const [doctorState, doctorDispatch] = React.useReducer(doctorReducer, {
-    fullname: null,
-    email: null,
-    gender: null,
-    birthday: null
-  })
+  
   const onSignOutPressed = async() => {
     try {
       const res = await signOut(auth)
@@ -29,9 +26,20 @@ export default function DoctorMainScreen({ navigation }) {
       console.log(error.message)
     }
   }
-
-  const name= <Text>Huy</Text>;
-
+  
+  React.useEffect(() => {
+    
+    if (authContext.authState.signedIn && !doctorInfo.fullname) {
+      console.log("Add doctor")
+      const userFullName = authContext.authState.userFullName
+      const userEmail = authContext.authState.userEmail
+      addNewDoctor(userEmail, userFullName)
+    }
+  }, [])
+  
+  const name= <Text>{doctorInfo.fullname}</Text>;
+  // const name= <Text>Something</Text>;
+  
   return (
     <Background>
       <Header>Hello { name },</Header>

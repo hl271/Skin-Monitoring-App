@@ -14,26 +14,49 @@ import {
 import { AuthContext, FirebaseContext, DoctorGlobalState } from './src/Contexts'
 import { doctorReducer } from './src/Reducers'
 import { createStackNavigator } from '@react-navigation/stack'
+import ACTION_TYPES from './src/ActionTypes'
 
 const DoctorStack = createStackNavigator()
 
 export default function DoctorNavigator() {
+  // console.log("doctor stack navigator")
   const authContext = React.useContext(AuthContext)
   const {auth} = React.useContext(FirebaseContext)
 
-  const [doctorInfo, doctorDispatch] = React.useReducer(doctorReducer, {
+  const [doctorInfo, doctorInfoDispatch] = React.useReducer(doctorReducer, {
     fullname: null,
     email: null,
     gender: null,
     birthday: null
   })
 
-  const doctorGlobalState = React.useMemo(() => {
+  const doctorContext = React.useMemo(() => ({
+    addNewDoctor: (email, fullname) => {
+      doctorInfoDispatch({type: ACTION_TYPES.DOCTOR.ADD_DOCTOR, email, fullname})
+    },
     doctorInfo
-  }, [doctorInfo])
+  }), [doctorInfo])
+
+  /* (doctorstacknav [=> doctormainscreen ]
+  => doctorstacknav useEffect = change doctorcontext 
+  => rerender doctorstacknav[, doctormainscreen]) => ...infinite loop
+  The Problem might be: the doctorcontext, due to if conditions, 
+  change in every re-render of this component without a break condition
+  
+  if (authContext.authState.signedIn) {
+    const userFullName = authContext.authState.userFullName
+    const userEmail = authContext.authState.userEmail
+    console.log("authContext signed In")
+    doctorContext.addNew("abc@gmail.com", "Lan")
+  }
+  */
+  
+  React.useEffect(() =>{
+
+  })
 
   return (
-    <DoctorGlobalState.Provider value={doctorGlobalState}>
+    <DoctorGlobalState.Provider value={doctorContext}>
       <DoctorStack.Navigator 
         initialRouteName="DoctorMainScreen"
         screenOptions={{

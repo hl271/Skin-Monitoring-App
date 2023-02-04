@@ -27,10 +27,13 @@ import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@e
 const Stack = createStackNavigator()
 
 export default function App() {
+  // const authContext = React.useContext(AuthContext)
+  // const {authState} = authContext
   const [authState, authDispatch] = React.useReducer(authReducer, {
     userToken: null,
     userRole: null,
     userEmail: null,
+    userFullName: null,
     signedIn: false,
     isSigningIn: false
   })
@@ -42,6 +45,7 @@ export default function App() {
       try {
         if (user) { 
           // If user is not in LogInScreen, try to automatically log in
+          console.log("isSigningIn is", authState.isSigningIn)
           if (!authState.isSigningIn) {
             console.log("Automatically signing in...") 
 
@@ -52,16 +56,16 @@ export default function App() {
             const hasuraClaim =
               idTokenResult.claims["https://hasura.io/jwt/claims"];
   
-            if (hasuraClaim) throw "Hasura claims NOT exists"
+            if (!hasuraClaim) throw "Hasura claims NOT exists"
     
             console.log("Hasura claims exists")
   
             const query = `query findUserByEmail($email: String!) {
               doctor(where: {email: {_eq: $email}}) {
-                doctorid
+                fullname
               }
               patient(where: {email: {_eq: $email}}) {
-                patientid
+                fullname
               }
             }`
       
@@ -76,18 +80,18 @@ export default function App() {
             })
             hasuraRes = await hasuraRes.json()
             console.log("Fetched user on hasura")
-            let role, loggedInUser
+            let role, userFullName
             if (hasuraRes.data.doctor.length > 0) {
               role = "doctor"
-              loggedInUser = hasuraRes.data.doctor[0]
+              userFullName = hasuraRes.data.doctor[0].fullname
             }
             else if (hasuraRes.data.patient.length > 0) {
               role = "patient"
-              loggedInUser = hasuraRes.data.patient[0]
+              userFullName = hasuraRes.data.patient[0].fullname
             }
             else throw "No user found on Hasura" 
             console.log("Logged in as ", role)
-            authContext.signIn(role, userToken, user.email)
+            authContext.signIn(role, userToken, user.email, userFullName)
           }          
         } else {
           authContext.signOut()
@@ -101,11 +105,14 @@ export default function App() {
 
   const authContext = React.useMemo(
     () => ({
-      signIn: (userRole, userToken, userEmail) => {
-        authDispatch({ type: ACTION_TYPES.AUTH.SIGN_IN,  userRole, userToken, userEmail});
+      signIn: (userRole, userToken, userEmail, userFullName) => {
+        authDispatch({ type: ACTION_TYPES.AUTH.SIGN_IN,  userRole, userToken, userEmail, userFullName});
       },
       signOut: () => authDispatch({ type: ACTION_TYPES.AUTH.SIGN_OUT }),
-      signingIn: (signingIn) => authDispatch({type: ACTION_TYPES.AUTH.SIGNING_IN, signingIn}),
+      signingIn: (isSigningIn) => {
+        console.log("issigningin change to ", isSigningIn)
+        authDispatch({type: ACTION_TYPES.AUTH.SIGNING_IN, isSigningIn})
+      },
       authState
     }),
     [authState]
@@ -115,7 +122,7 @@ export default function App() {
   let NavigationStacks
   if (authState.signedIn) {
     if (authState.userRole == "doctor") {
-      console.log("Change to doctor screen...")
+      // console.log("Change to doctor screen...")
       NavigationStacks = (
         <Stack.Screen name="DoctorNavigator" component={DoctorNavigator}/>
       )      
@@ -126,6 +133,7 @@ export default function App() {
       )
     }
   } else {
+    // console.log("Change to start screen...")
     NavigationStacks = (
       <>
       <Stack.Screen name="StartScreen" component={StartScreen} />
