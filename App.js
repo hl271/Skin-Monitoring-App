@@ -45,7 +45,8 @@ export default function App() {
       try {
         if (user) { 
           // If user is not in LogInScreen, try to automatically log in
-          console.log("isSigningIn is", authState.isSigningIn)
+          // TODO: RESOLVE authState.isSigningState is ALWAYS SET to FALSE inside this async function
+          // console.log("isSigningIn is", authState.isSigningIn)
           if (!authState.isSigningIn) {
             console.log("Automatically signing in...") 
 
@@ -58,8 +59,6 @@ export default function App() {
   
             if (!hasuraClaim) throw "Hasura claims NOT exists"
     
-            console.log("Hasura claims exists")
-  
             const query = `query findUserByEmail($email: String!) {
               doctor(where: {email: {_eq: $email}}) {
                 fullname
@@ -79,7 +78,6 @@ export default function App() {
               body: JSON.stringify(graphqlReq)
             })
             hasuraRes = await hasuraRes.json()
-            console.log("Fetched user on hasura")
             let role, userFullName
             if (hasuraRes.data.doctor.length > 0) {
               role = "doctor"

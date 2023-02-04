@@ -58,7 +58,6 @@ export default function RegisterScreen({ navigation }) {
       authContext.signingIn(true)
       const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
       const userToken = await res.user.getIdToken()
-      console.log("Create user successfully!")
       // Update Custom Claims of User on Server
       let claimsRes = await fetch(`${AUTH_API_NGROK}/set-custom-claims`, {
         method: 'POST',
@@ -74,37 +73,30 @@ export default function RegisterScreen({ navigation }) {
       const idTokenResult = await auth.currentUser.getIdTokenResult()
       const hasuraClaim =
             idTokenResult.claims["https://hasura.io/jwt/claims"];
-      if (hasuraClaim) {
-        console.log("Install Hasura claims successfully")   
-        const userFullName = name.value
-        const userRole = per.toLowerCase()
-        const userEmail = email.value;
-        const upsertQuery = `
-        mutation($userEmail: String!, $userFullName: String!){
-          insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
-            ${userRole}id,
-            email
-          }
-        }`      
-        const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
-        let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-          method: 'POST',
-          headers: {
-            'content-type' : 'application/json', 
-            'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
-          },
-          body: JSON.stringify(graphqlReq)
-        })
-        hasuraRes = await hasuraRes.json()
-        console.log("Create new user on hasura")
-        console.log(hasuraRes)
-        
-        authContext.signIn(userRole, userToken, userEmail, userFullName)    
-
-      } else {
-        console.log("Hasura claims not exits")
-        setFormError("Server Error. Please try again!")
-      }      
+      if (!hasuraClaim) throw "Hasura Claims not exist!"
+      const userFullName = name.value
+      const userRole = per.toLowerCase()
+      const userEmail = email.value;
+      const upsertQuery = `
+      mutation($userEmail: String!, $userFullName: String!){
+        insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
+          ${userRole}id,
+          email
+        }
+      }`      
+      const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
+      let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+        method: 'POST',
+        headers: {
+          'content-type' : 'application/json', 
+          'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+        },
+        body: JSON.stringify(graphqlReq)
+      })
+      hasuraRes = await hasuraRes.json()
+      console.log(hasuraRes)
+      
+      authContext.signIn(userRole, userToken, userEmail, userFullName)    
     } catch (error) {
       console.log("Error occured while register")
       if (error.code && error.code == "auth/email-already-in-use") {

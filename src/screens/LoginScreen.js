@@ -45,7 +45,7 @@ export default function LoginScreen({ navigation }) {
       console.log(`Password: ${password.value}`)
 
       //Sign in user with firebase auth
-      console.log("signing In...")
+      // console.log("signing In...")
       authContext.signingIn(true)
       const res = await signInWithEmailAndPassword(auth, email.value, password.value)
       const userToken = await res.user.getIdToken()
@@ -56,8 +56,6 @@ export default function LoginScreen({ navigation }) {
         idTokenResult.claims["https://hasura.io/jwt/claims"];
 
       if (!hasuraClaim) throw "Hasura claims NOT exists"
-
-      console.log("Hasura claims exists")
 
       const query = `query findUserByEmail($email: String!) {
         doctor(where: {email: {_eq: $email}}) {
@@ -78,7 +76,6 @@ export default function LoginScreen({ navigation }) {
         body: JSON.stringify(graphqlReq)
       })
       hasuraRes = await hasuraRes.json()
-      console.log("Fetched user on hasura")
       let role, userFullName
       if (hasuraRes.data.doctor.length > 0) {
         role = "doctor"
