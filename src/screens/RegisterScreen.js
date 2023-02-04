@@ -13,19 +13,21 @@ import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { NativeBaseProvider, Radio, Box, ListItem, Stack } from 'native-base'
 
-import app from '../helpers/firebase'
+import {ActionCreators, FirebaseContext} from '../Contexts'
+
+// import app from '../helpers/firebase'
 import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
 import {getDatabase, ref, onValue} from 'firebase/database';
 // import { onAuthStateChanged } from 'firebase/auth'
 
-const auth = getAuth(app)
-const database = getDatabase(app)
+// const auth = getAuth(app)
+// const database = getDatabase(app)
 
-import {AUTH_API_NGROK} from "@env"
+import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function RegisterScreen({ navigation }) {
-  const apiURL = `${AUTH_API_NGROK}/setCustomClaims`
-
+  const actionCreators = React.useContext(ActionCreators)
+  const {auth} = React.useContext(FirebaseContext)
   const [per, setPer] = useState("doctor")
   const [name, setName] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -45,95 +47,84 @@ export default function RegisterScreen({ navigation }) {
     return true
   }
 
-  const onSignUpPressed = () => {
-    if (!isFormValidated()) return
-    console.log(`Email: ${email.value}`)
-    console.log(`Password: ${password.value}`)
-    createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(res => {
-      return res.user.getIdToken()
-    })
-    .then(UserToken => {
+  const onSignUpPressed = async () => {
+    try {
+      if (!isFormValidated()) return
+      console.log(`Email: ${email.value}`)
+      console.log(`Password: ${password.value}`)
       
+      // Create new user using firebase auth
+      const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
+      const userToken = await res.user.getIdToken()
       console.log("Create user successfully!")
-      console.log(`AUTH_API_NGROK: ${apiURL}`)
-      // Update Custom Claims of User on Lambda Server
-      fetch(apiURL, {
+      // Update Custom Claims of User on Server
+      let fetchedRes = await fetch(`${AUTH_API_NGROK}/set-custom-claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          userToken: UserToken,
+          userToken: userToken,
           userRole: per
         })
       })
-      .then(res => {
-          console.log("Create custom claims successfully")
-          console.log(res.json())
-        })
-      .catch(error => {
-        console.log("Error while sending custom claims request")
-        console.log(error.message)
+      fetchedRes = fetchedRes.json()
+      console.log("Create custom claims successfully")
+      console.log(fetchedRes)
+      const userFullName = name.value
+      const userRole = per.toLowerCase()
+      const userEmail = email.value;
+      const upsertQuery = `
+      mutation($userEmail: String!, $userFullName: String!){
+        insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
+          ${userRole}id,
+          email
+        }
+      }`      
+      const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
+      let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+        method: 'POST',
+        headers: {
+          'content-type' : 'application/json', 
+          'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+        },
+        body: JSON.stringify(graphqlReq)
       })
-    })
-    .catch(error => {
-      console.log("Error while creating new user")
-      console.log(error.message)
-    })    
+      hasuraRes = await hasuraRes.json()
+      console.log("Create new user on hasura")
+      console.log(hasuraRes)
+
+    } catch (error) {
+      console.log("Error occured")
+      if (error.code && error.code == "auth/email-already-in-use") {
+        setEmail({ ...email, error: "Email already exists! Please choose another email" })
+        return
+      }
+      console.log("Error code: ", error.code)
+      console.log("Error message: ",error.message)
+    }
     
   }
 
   useEffect(() => {
-    return auth.onAuthStateChanged(async user => {
-      console.log("Detect auth state change")
-      // console.log(user)
-      user.getIdToken()
-      try {
-        if (user) {          
-          const token = await user.getIdToken();
-          const idTokenResult = await user.getIdTokenResult();  
-          // console.log("tokenresult: ", idTokenResult)
-          const hasuraClaim =
-            idTokenResult.claims["https://hasura.io/jwt/claims"];
-  
-          if (hasuraClaim) {
-            setLoggedIn(true);
-          } else {
-            // Check if refresh is required.
-            const metadataRef = ref(database, "metadata/" + user.uid + "/refreshTime");
-            onValue(metadataRef, async (data) => {
-              if(!data.exists) return
-              // Force refresh to pick up the latest custom claims changes.
-              const token = await user.getIdToken(true);
-              setLoggedIn(true);
-            });
-          }
-        } else {
-          setLoggedIn(false);
-        }
-      } catch (error) {
-        console.log("Error occured!")
-        console.log(error)
-      }
-    });
+    
   }, [])
   
-  if (loggedIn) {
-    if (per=="doctor") {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'DoctorMainScreen' }],
-        })
-      }
-    else
-      {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'PatientMainScreen' }],
-          })
-      }
-  }
+  // if (loggedIn) {
+  //   if (per=="doctor") {
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: 'DoctorMainScreen' }],
+  //       })
+  //     }
+  //   else
+  //     {
+  //       navigation.reset({
+  //         index: 0,
+  //         routes: [{ name: 'PatientMainScreen' }],
+  //         })
+  //     }
+  // }
   
   return (
     <NativeBaseProvider>
