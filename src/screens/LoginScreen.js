@@ -13,32 +13,40 @@ import { passwordValidator } from '../helpers/passwordValidator'
 import { NativeBaseProvider, Radio, Box, ListItem, Stack } from 'native-base'
 import Paragraph from '../components/Paragraph'
 
+import {AuthContext, FirebaseContext} from '../Contexts'
+
+import {signInWithEmailAndPassword} from 'firebase/auth'
 export default function LoginScreen({ navigation }) {
+  const authContext = React.useContext(AuthContext)  
+  const {auth} = React.useContext(FirebaseContext)
+
   const [per, setPer] = useState("doctor")
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
-  const onLoginPressed = () => {
+  const isFormValidated = () => {
     const emailError = emailValidator(email.value)
     const passwordError = passwordValidator(password.value)
     if (emailError || passwordError) {
       setEmail({ ...email, error: emailError })
       setPassword({ ...password, error: passwordError })
-      return
+      return false
     }
-    if (per=="doctor")
-    {
-      navigation.reset({
-      index: 0,
-      routes: [{ name: 'DoctorMainScreen' }],
-      })
-    }
-    else
-    {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'PatientMainScreen' }],
-        })
+    return true
+  }
+  const onLoginPressed = async () => {
+    try {
+      if (!isFormValidated()) return
+      console.log(`Email: ${email.value}`)
+      console.log(`Password: ${password.value}`)
+
+      //Sign in user with firebase auth
+      const res = await signInWithEmailAndPassword(auth, email.value, password.value)
+      
+    } catch(error) {
+      console.log("Error occured while sign in")
+      console.log("Error code: ", error.code)
+      console.log("Error message: ",error.message)
     }
     
   }

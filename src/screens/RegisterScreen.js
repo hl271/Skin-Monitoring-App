@@ -13,7 +13,7 @@ import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { NativeBaseProvider, Radio, Box, ListItem, Stack } from 'native-base'
 
-import {ActionCreators, FirebaseContext} from '../Contexts'
+import {AuthContext, FirebaseContext} from '../Contexts'
 
 // import app from '../helpers/firebase'
 import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
@@ -26,13 +26,14 @@ import {getDatabase, ref, onValue} from 'firebase/database';
 import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function RegisterScreen({ navigation }) {
-  const actionCreators = React.useContext(ActionCreators)
-  const {auth} = React.useContext(FirebaseContext)
+  const authContext = React.useContext(AuthContext)  
+  const {auth, app} = React.useContext(FirebaseContext)
+
   const [per, setPer] = useState("doctor")
   const [name, setName] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [formError, setFormError] = useState("")
 
   const isFormValidated = () => {
     const nameError = nameValidator(name.value)
@@ -58,7 +59,7 @@ export default function RegisterScreen({ navigation }) {
       const userToken = await res.user.getIdToken()
       console.log("Create user successfully!")
       // Update Custom Claims of User on Server
-      let fetchedRes = await fetch(`${AUTH_API_NGROK}/set-custom-claims`, {
+      let claimsRes = await fetch(`${AUTH_API_NGROK}/set-custom-claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -68,37 +69,48 @@ export default function RegisterScreen({ navigation }) {
           userRole: per
         })
       })
-      fetchedRes = fetchedRes.json()
-      console.log("Create custom claims successfully")
-      console.log(fetchedRes)
-      const userFullName = name.value
-      const userRole = per.toLowerCase()
-      const userEmail = email.value;
-      const upsertQuery = `
-      mutation($userEmail: String!, $userFullName: String!){
-        insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
-          ${userRole}id,
-          email
-        }
-      }`      
-      const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
-      let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-        method: 'POST',
-        headers: {
-          'content-type' : 'application/json', 
-          'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
-        },
-        body: JSON.stringify(graphqlReq)
-      })
-      hasuraRes = await hasuraRes.json()
-      console.log("Create new user on hasura")
-      console.log(hasuraRes)
+      await auth.currentUser.getIdToken(true)
+      const idTokenResult = await auth.currentUser.getIdTokenResult()
+      const hasuraClaim =
+            idTokenResult.claims["https://hasura.io/jwt/claims"];
+      if (hasuraClaim) {
+        console.log("Install Hasura claims successfully")   
+        const userFullName = name.value
+        const userRole = per.toLowerCase()
+        const userEmail = email.value;
+        const upsertQuery = `
+        mutation($userEmail: String!, $userFullName: String!){
+          insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
+            ${userRole}id,
+            email
+          }
+        }`      
+        const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
+        let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+          method: 'POST',
+          headers: {
+            'content-type' : 'application/json', 
+            'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+          },
+          body: JSON.stringify(graphqlReq)
+        })
+        hasuraRes = await hasuraRes.json()
+        console.log("Create new user on hasura")
+        console.log(hasuraRes)
+        authContext.signIn(userRole, userToken, userEmail)    
+
+      } else {
+        console.log("Hasura claims not exits")
+        setFormError("Server Error. Please try again!")
+      }      
 
     } catch (error) {
       console.log("Error occured")
       if (error.code && error.code == "auth/email-already-in-use") {
         setEmail({ ...email, error: "Email already exists! Please choose another email" })
         return
+      } else {
+        setFormError("Server Error. Please try again!")
       }
       console.log("Error code: ", error.code)
       console.log("Error message: ",error.message)
@@ -109,22 +121,6 @@ export default function RegisterScreen({ navigation }) {
   useEffect(() => {
     
   }, [])
-  
-  // if (loggedIn) {
-  //   if (per=="doctor") {
-  //     navigation.reset({
-  //       index: 0,
-  //       routes: [{ name: 'DoctorMainScreen' }],
-  //       })
-  //     }
-  //   else
-  //     {
-  //       navigation.reset({
-  //         index: 0,
-  //         routes: [{ name: 'PatientMainScreen' }],
-  //         })
-  //     }
-  // }
   
   return (
     <NativeBaseProvider>
@@ -148,6 +144,7 @@ export default function RegisterScreen({ navigation }) {
           </Radio>
          </Stack>
       </Radio.Group>
+      <Text style= {{color: 'red'}}>{formError}</Text>
       <TextInput
         label="Name"
         returnKeyType="next"

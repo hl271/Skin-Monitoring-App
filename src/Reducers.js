@@ -47,7 +47,7 @@ export function doctorReducer(prevState, action) {
     }
 }
 
-export function userReducer(prevState, action) {
+export function patientReducer(prevState, action) {
     switch(action.type) {
         case ACTION_TYPES.PATIENT.UPDATE_PROFILE: {
             return {
@@ -56,6 +56,16 @@ export function userReducer(prevState, action) {
                 birthday: action.birthday,
                 gender: action.gender
             }
+        }
+        case ACTION_TYPES.PATIENT.ADD_PATIENT: {
+            return {
+                ...prevState,
+                email: action.email,
+                fullname: action.fullname,
+            }
+        }
+        default: {
+            throw Error('Unknown action: ' + action.type)
         }
     }
 }

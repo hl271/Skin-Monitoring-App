@@ -23,8 +23,7 @@ import {
   MyAppointmentScreen
 } from './src/screens'
 import {authReducer} from './src/Reducers'
-import ACTION_TYPES from './src/ActionTypes'
-import {AuthContext, ActionCreators, FirebaseContext} from './src/Contexts'
+import {AuthContext, FirebaseContext} from './src/Contexts'
 
 import app from './src/helpers/firebase'
 import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
@@ -36,6 +35,8 @@ const database = getDatabase(app)
 import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 const Stack = createStackNavigator()
+const PatientStack = createStackNavigator()
+const DoctorStack = createStackNavigator()
 
 export default function App() {
   const [authState, authDispatch] = React.useReducer(authReducer, {
@@ -93,7 +94,7 @@ export default function App() {
             }
             else console.log("Found no user on Hasura")
             console.log("Logged in as ", role)
-            actionCreators.signIn(role, userToken, user.email)
+            authContext.signIn(role, userToken, user.email)
 
           } else {
             console.log("Hasura claims not exits")
@@ -107,7 +108,7 @@ export default function App() {
             // });
           }
         } else {
-          // setLoggedIn(false);
+          authContext.signOut()
         }
       } catch (error) {
         console.log("Error occured!")
@@ -116,45 +117,61 @@ export default function App() {
     });
   }, [])
 
-  const actionCreators = React.useMemo(
+  const authContext = React.useMemo(
     () => ({
       signIn: (userRole, userToken, userEmail) => {
         authDispatch({ type: 'SIGN_IN',  userRole, userToken, userEmail});
       },
       signOut: () => authDispatch({ type: 'SIGN_OUT' }),
-      signUp: (email, password, name, role) => {
-        
-      },
+      authState
     }),
-    []
+    [authState]
   );
+
+  const PatientNavigator = () => (
+    <PatientStack.Navigator
+      initialRouteName="PatientMainScreen"
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="PatientMainScreen" component={PatientMainScreen} />
+      <Stack.Screen name="CameraScreen" component={CameraScreen} />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="ResultScreen" component={ResultScreen} />
+      <Stack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
+      <Stack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
+      <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
+      <Stack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
+      <Stack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
+    </PatientStack.Navigator>
+  )
+
+  const DoctorNavigator = () => (
+    <DoctorStack.Navigator 
+      initialRouteName="DoctorMainScreen"
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="DoctorMainScreen" component={DoctorMainScreen} />
+      <Stack.Screen name="ScheduleScreen" component={ScheduleScreen} />
+      <Stack.Screen name="AddNewScheduleScreen" component={AddNewScheduleScreen} />
+      <Stack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
+      
+    </DoctorStack.Navigator>
+  )
 
   let NavigationStacks
   if (authState.signedIn) {
     if (authState.userRole == "doctor") {
       NavigationStacks = (
-        <>
-          <Stack.Screen name="DoctorMainScreen" component={DoctorMainScreen} />
-          <Stack.Screen name="ScheduleScreen" component={ScheduleScreen} />
-          <Stack.Screen name="AddNewScheduleScreen" component={AddNewScheduleScreen} />
-          <Stack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
-          
-        </>
+        <Stack.Screen name="DoctorNavigator" component={DoctorNavigator}/>
       )      
     }
     else if (authState.userRole == "patient") {
       NavigationStacks = (
-        <>
-        <Stack.Screen name="PatientMainScreen" component={PatientMainScreen} />
-        <Stack.Screen name="CameraScreen" component={CameraScreen} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="ResultScreen" component={ResultScreen} />
-        <Stack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
-        <Stack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
-        <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
-        <Stack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
-        <Stack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
-        </>
+        <Stack.Screen name="PatientNavigator" component={PatientNavigator}/>
       )
     }
   } else {
@@ -169,21 +186,25 @@ export default function App() {
   }
 
   return (
-    <Provider theme={theme}>
-      <ActionCreators.Provider value={actionCreators}>
+    <Provider theme={theme}>      
         <FirebaseContext.Provider value={{app, auth, database}}>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="StartScreen"
-              screenOptions={{
-                headerShown: false,
-              }}
-            >             
-              {NavigationStacks}
-            </Stack.Navigator>
-          </NavigationContainer>
-        </FirebaseContext.Provider>
-      </ActionCreators.Provider>
+          <AuthContext.Provider value={authContext}>
+
+            <NavigationContainer>
+              <Stack.Navigator
+                initialRouteName="StartScreen"
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >             
+
+                {NavigationStacks}
+
+              </Stack.Navigator>
+            </NavigationContainer>
+
+          </AuthContext.Provider>
+        </FirebaseContext.Provider>     
     </Provider>
   )
 }
