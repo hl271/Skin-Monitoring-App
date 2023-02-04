@@ -40,6 +40,9 @@ export default function PatientMainScreen({ navigation }) {
         >
             View your detection history
         </Button>
+        <Button
+        mode='outlined'
+        icon="logout" onPress={()=>navigation.navigate("StartScreen")}>Sign out</Button>
       </Background>
     )
   }
