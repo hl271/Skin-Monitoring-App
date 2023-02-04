@@ -16,6 +16,9 @@ import Paragraph from '../components/Paragraph'
 import {AuthContext, FirebaseContext} from '../Contexts'
 
 import {signInWithEmailAndPassword} from 'firebase/auth'
+
+import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+
 export default function LoginScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)  
   const {auth} = React.useContext(FirebaseContext)
@@ -23,6 +26,7 @@ export default function LoginScreen({ navigation }) {
   const [per, setPer] = useState("doctor")
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
+  const [formError, setFormError] = useState("")
 
   const isFormValidated = () => {
     const emailError = emailValidator(email.value)
@@ -41,12 +45,64 @@ export default function LoginScreen({ navigation }) {
       console.log(`Password: ${password.value}`)
 
       //Sign in user with firebase auth
+      console.log("signing In...")
+      authContext.signingIn(true)
       const res = await signInWithEmailAndPassword(auth, email.value, password.value)
+      const userToken = await res.user.getIdToken()
+      const idTokenResult = await res.user.getIdTokenResult();  
+      // console.log("tokenresult: ", idTokenResult)
+      
+      const hasuraClaim =
+        idTokenResult.claims["https://hasura.io/jwt/claims"];
+
+      if (!hasuraClaim) throw "Hasura claims NOT exists"
+
+      console.log("Hasura claims exists")
+
+      const query = `query findUserByEmail($email: String!) {
+        doctor(where: {email: {_eq: $email}}) {
+          doctorid
+        }
+        patient(where: {email: {_eq: $email}}) {
+          patientid
+        }
+      }`
+
+      const graphqlReq = { "query": query, "variables": { "email": email.value} }
+      let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+        method: 'POST',
+        headers: {
+          'content-type' : 'application/json', 
+          'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+        },
+        body: JSON.stringify(graphqlReq)
+      })
+      hasuraRes = await hasuraRes.json()
+      console.log("Fetched user on hasura")
+      let role
+      if (hasuraRes.data.doctor.length > 0) {
+        role = "doctor"
+      }
+      else if (hasuraRes.data.patient.length > 0) {
+        role = "patient"
+      }
+      else throw "No user found on Hasura" 
+      console.log("Logged in as ", role)
+      
+      authContext.signIn(role, userToken, email.value)
       
     } catch(error) {
       console.log("Error occured while sign in")
-      console.log("Error code: ", error.code)
-      console.log("Error message: ",error.message)
+      if (!!error.code && error.code == "auth/wrong-password") {
+        setPassword({value:'', error: "Wrong Password!"})
+      } else if (error.code == "auth/user-not-found") {
+        setEmail({value: '', error: "Email doesn't exists!"})
+      } else {
+        console.log(error)
+        setFormError("Server Error. Please try again or try another account!")
+      }
+    } finally {
+      authContext.signingIn(false)
     }
     
   }
@@ -73,6 +129,7 @@ export default function LoginScreen({ navigation }) {
           </Radio>
          </Stack>
       </Radio.Group>
+      <Text style= {{color: 'red'}}>{formError}</Text>
       <TextInput
         label="Email"
         returnKeyType="next"

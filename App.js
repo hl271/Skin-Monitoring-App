@@ -8,22 +8,12 @@ import {
   LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
-  PatientMainScreen,
-  CameraScreen,
-  ProfileScreen,
-  ResultScreen,
-  DoctorsListScreen,
-  AppointmentDetailScreen,
-  HistoryScreen,
-  DetectionHistoryScreen,
-  AppointmentHistoryScreen,
-  DoctorMainScreen,
-  ScheduleScreen,
-  AddNewScheduleScreen,
-  MyAppointmentScreen
 } from './src/screens'
+import PatientNavigator from './PatientNavigator'
+import DoctorNavigator from './DoctorNavigator'
 import {authReducer} from './src/Reducers'
 import {AuthContext, FirebaseContext} from './src/Contexts'
+import ACTION_TYPES from './src/ActionTypes'
 
 import app from './src/helpers/firebase'
 import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
@@ -35,15 +25,14 @@ const database = getDatabase(app)
 import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 const Stack = createStackNavigator()
-const PatientStack = createStackNavigator()
-const DoctorStack = createStackNavigator()
 
 export default function App() {
   const [authState, authDispatch] = React.useReducer(authReducer, {
     userToken: null,
     userRole: null,
     userEmail: null,
-    signedIn: false
+    signedIn: false,
+    isSigningIn: false
   })
 
   React.useEffect(() => {
@@ -52,17 +41,21 @@ export default function App() {
       // console.log(user)
       try {
         if (user) { 
-          console.log("User detected") 
-          const userToken = await user.getIdToken();
-          const idTokenResult = await user.getIdTokenResult();  
-          // console.log("tokenresult: ", idTokenResult)
-          
-          const hasuraClaim =
-            idTokenResult.claims["https://hasura.io/jwt/claims"];
-  
-          if (hasuraClaim) {
-            console.log("Hasura claims exists")
+          // If user is not in LogInScreen, try to automatically log in
+          if (!authState.isSigningIn) {
+            console.log("Automatically signing in...") 
 
+            const userToken = await user.getIdToken();
+            const idTokenResult = await user.getIdTokenResult();  
+            // console.log("tokenresult: ", idTokenResult)
+            
+            const hasuraClaim =
+              idTokenResult.claims["https://hasura.io/jwt/claims"];
+  
+            if (hasuraClaim) throw "Hasura claims NOT exists"
+    
+            console.log("Hasura claims exists")
+  
             const query = `query findUserByEmail($email: String!) {
               doctor(where: {email: {_eq: $email}}) {
                 doctorid
@@ -92,26 +85,15 @@ export default function App() {
               role = "patient"
               loggedInUser = hasuraRes.data.patient[0]
             }
-            else console.log("Found no user on Hasura")
+            else throw "No user found on Hasura" 
             console.log("Logged in as ", role)
             authContext.signIn(role, userToken, user.email)
-
-          } else {
-            console.log("Hasura claims not exits")
-            // // Check if refresh is required.
-            // const metadataRef = ref(database, "metadata/" + user.uid + "/refreshTime");
-            // onValue(metadataRef, async (data) => {
-            //   if(!data.exists) return
-            //   // Force refresh to pick up the latest custom claims changes.
-            //   console.log("force refresh")
-            //   const token = await user.getIdToken(true)
-            // });
-          }
+          }          
         } else {
           authContext.signOut()
         }
       } catch (error) {
-        console.log("Error occured!")
+        console.log("Error occured while auth state change")
         console.log(error)
       }
     });
@@ -120,51 +102,20 @@ export default function App() {
   const authContext = React.useMemo(
     () => ({
       signIn: (userRole, userToken, userEmail) => {
-        authDispatch({ type: 'SIGN_IN',  userRole, userToken, userEmail});
+        authDispatch({ type: ACTION_TYPES.AUTH.SIGN_IN,  userRole, userToken, userEmail});
       },
-      signOut: () => authDispatch({ type: 'SIGN_OUT' }),
+      signOut: () => authDispatch({ type: ACTION_TYPES.AUTH.SIGN_OUT }),
+      signingIn: (signingIn) => authDispatch({type: ACTION_TYPES.AUTH.SIGNING_IN, signingIn}),
       authState
     }),
     [authState]
   );
 
-  const PatientNavigator = () => (
-    <PatientStack.Navigator
-      initialRouteName="PatientMainScreen"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="PatientMainScreen" component={PatientMainScreen} />
-      <Stack.Screen name="CameraScreen" component={CameraScreen} />
-      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      <Stack.Screen name="ResultScreen" component={ResultScreen} />
-      <Stack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
-      <Stack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
-      <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
-      <Stack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
-      <Stack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
-    </PatientStack.Navigator>
-  )
-
-  const DoctorNavigator = () => (
-    <DoctorStack.Navigator 
-      initialRouteName="DoctorMainScreen"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="DoctorMainScreen" component={DoctorMainScreen} />
-      <Stack.Screen name="ScheduleScreen" component={ScheduleScreen} />
-      <Stack.Screen name="AddNewScheduleScreen" component={AddNewScheduleScreen} />
-      <Stack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
-      
-    </DoctorStack.Navigator>
-  )
 
   let NavigationStacks
   if (authState.signedIn) {
     if (authState.userRole == "doctor") {
+      console.log("Change to doctor screen...")
       NavigationStacks = (
         <Stack.Screen name="DoctorNavigator" component={DoctorNavigator}/>
       )      

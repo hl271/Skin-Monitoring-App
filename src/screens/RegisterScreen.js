@@ -54,7 +54,8 @@ export default function RegisterScreen({ navigation }) {
       console.log(`Email: ${email.value}`)
       console.log(`Password: ${password.value}`)
       
-      // Create new user using firebase auth
+      // Create new user using firebase 
+      authContext.signingIn(true)
       const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
       const userToken = await res.user.getIdToken()
       console.log("Create user successfully!")
@@ -97,23 +98,24 @@ export default function RegisterScreen({ navigation }) {
         hasuraRes = await hasuraRes.json()
         console.log("Create new user on hasura")
         console.log(hasuraRes)
+        
         authContext.signIn(userRole, userToken, userEmail)    
 
       } else {
         console.log("Hasura claims not exits")
         setFormError("Server Error. Please try again!")
       }      
-
     } catch (error) {
-      console.log("Error occured")
+      console.log("Error occured while register")
       if (error.code && error.code == "auth/email-already-in-use") {
         setEmail({ ...email, error: "Email already exists! Please choose another email" })
         return
       } else {
-        setFormError("Server Error. Please try again!")
-      }
-      console.log("Error code: ", error.code)
-      console.log("Error message: ",error.message)
+        console.log(error)
+        setFormError("Server Error. Please try again or try another account!")
+      }      
+    } finally {
+      authContext.signingIn(false)
     }
     
   }

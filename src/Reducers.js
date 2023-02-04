@@ -18,6 +18,12 @@ export function authReducer(prevState, action) {
                 signedIn: false
             }
         }
+        case ACTION_TYPES.AUTH.SIGNING_IN: {
+            return  {
+                ...prevState,
+                isSigningIn: true
+            }
+        }
         default: {
             throw Error('Unknown action: ' + action.type);
         }
