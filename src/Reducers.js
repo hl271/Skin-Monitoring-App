@@ -86,3 +86,57 @@ export function patientReducer(prevState, action) {
         }
     }
 }
+
+export function recordReducer(prevState, action) {
+    switch (action.type) {
+        case ACTION_TYPES.RECORD.ADD_RECORD: {
+            return [...prevState, {
+                id: action.recordid,
+                pictureurl: action.pictureurl,
+                accuracy: action.accuracy,
+                disease: action.disease,
+                recordtime: action.recordtime
+            }]
+        }
+    }
+}
+
+export function patientAppointmentReducer(prevState, action) {
+    switch (action.type) {
+        case ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINTMENT: {
+            return [...prevState, {
+                scheduledate: action.scheduledate,
+                scheduletime: action.scheduletime,
+                doctor: action.doctor
+            }]
+        }
+    }
+}
+export function doctorListReducer(prevState, action) {
+    switch(action.type) {
+        case ACTION_TYPES.DOCTOR_LIST.FETCH_DOCTOR: {
+            return [...prevState, {
+                doctorid: action.doctorid,
+                fullname: action.fullname,
+                workaddress: action.workaddess,
+                about: action.about,
+                profilepicture: action.profilepicture,
+                phonenumber: action.phonenumber,
+                email: action.email,
+                schedules: null
+            }]
+        }
+        case ACTION_TYPES.DOCTOR_LIST.FETCH_DOCTOR_SCHEDULE: {
+            return prevState.map(doctor => {
+                if (doctor.doctorid === action.doctorid) {
+                    return {
+                        ...doctor,
+                        schedules: [...action.schedules]
+                    }
+                } else {
+                    return doctor
+                }
+            })
+        }
+    }
+}

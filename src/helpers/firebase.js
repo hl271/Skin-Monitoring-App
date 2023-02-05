@@ -14,7 +14,8 @@ const firebaseConfig = {
   storageBucket: "skin-monitoring-app.appspot.com",
   messagingSenderId: "602636451978",
   appId: "1:602636451978:web:4ea1c20c0ad7c968bced73",
-  databaseURL: "https://skin-monitoring-app-default-rtdb.firebaseio.com"
+  databaseURL: "https://skin-monitoring-app-default-rtdb.firebaseio.com",
+  storageBucket: "gs://skin-monitoring-app.appspot.com"
 };
 
 // let app;

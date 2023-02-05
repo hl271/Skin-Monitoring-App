@@ -16,14 +16,14 @@ import { NativeBaseProvider, Radio, Box, ListItem, Stack } from 'native-base'
 import {AuthContext, FirebaseContext} from '../Contexts'
 
 // import app from '../helpers/firebase'
-import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
+import {getAuth, createUserWithEmailAndPassword, deleteUser} from 'firebase/auth';
 import {getDatabase, ref, onValue} from 'firebase/database';
 // import { onAuthStateChanged } from 'firebase/auth'
 
 // const auth = getAuth(app)
 // const database = getDatabase(app)
 
-import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import {AUTH_API, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function RegisterScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)  
@@ -59,7 +59,8 @@ export default function RegisterScreen({ navigation }) {
       const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
       const userToken = await res.user.getIdToken()
       // Update Custom Claims of User on Server
-      let claimsRes = await fetch(`${AUTH_API_NGROK}/set-custom-claims`, {
+      console.log(`${AUTH_API}/set-custom-claims`)
+      let claimsRes = await fetch(`${AUTH_API}/set-custom-claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -69,11 +70,12 @@ export default function RegisterScreen({ navigation }) {
           userRole: per
         })
       })
-      await auth.currentUser.getIdToken(true)
+      const newToken = await auth.currentUser.getIdToken(true)
       const idTokenResult = await auth.currentUser.getIdTokenResult()
       const hasuraClaim =
             idTokenResult.claims["https://hasura.io/jwt/claims"];
-      if (!hasuraClaim) throw "Hasura Claims not exist!"
+      if (!hasuraClaim) throw Error("Hasura Claims not exist!")
+      console.log("Hasura claims exists!!")
       const userFullName = name.value
       const userRole = per.toLowerCase()
       const userEmail = email.value;
@@ -85,6 +87,8 @@ export default function RegisterScreen({ navigation }) {
         }
       }`      
       const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
+      console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
+      console.log(`${X_HASURA_ADMIN_SECRET}`)
       let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
         method: 'POST',
         headers: {
@@ -103,9 +107,15 @@ export default function RegisterScreen({ navigation }) {
         setEmail({ ...email, error: "Email already exists! Please choose another email" })
         return
       } else {
-        console.log(error)
+        console.log(error.message)
         setFormError("Server Error. Please try again or try another account!")
       }      
+      console.log("delete user...")
+      const deletingUser = getAuth().currentUser
+      deleteUser(deletingUser).then(() => {
+        console.log("Deleted user from firebase!")
+      })
+
     } finally {
       authContext.signingIn(false)
     }

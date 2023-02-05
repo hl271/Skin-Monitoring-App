@@ -22,7 +22,7 @@ import {getDatabase, ref, onValue} from 'firebase/database';
 const auth = getAuth(app)
 const database = getDatabase(app)
 
-import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 const Stack = createStackNavigator()
 
@@ -78,6 +78,7 @@ export default function App() {
               body: JSON.stringify(graphqlReq)
             })
             hasuraRes = await hasuraRes.json()
+            // console.log(hasuraRes)
             let role, userFullName
             if (hasuraRes.data.doctor.length > 0) {
               role = "doctor"

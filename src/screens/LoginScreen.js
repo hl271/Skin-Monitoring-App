@@ -17,7 +17,7 @@ import {AuthContext, FirebaseContext} from '../Contexts'
 
 import {signInWithEmailAndPassword} from 'firebase/auth'
 
-import {AUTH_API_NGROK, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import {AUTH_API, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function LoginScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)  
@@ -67,6 +67,7 @@ export default function LoginScreen({ navigation }) {
       }`
 
       const graphqlReq = { "query": query, "variables": { "email": email.value} }
+      // console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
       let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
         method: 'POST',
         headers: {
@@ -76,6 +77,7 @@ export default function LoginScreen({ navigation }) {
         body: JSON.stringify(graphqlReq)
       })
       hasuraRes = await hasuraRes.json()
+      // console.log(hasuraRes)
       let role, userFullName
       if (hasuraRes.data.doctor.length > 0) {
         role = "doctor"

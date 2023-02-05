@@ -11,7 +11,8 @@ import {
   MyAppointmentScreen
 } from './src/screens'
 
-import { AuthContext, FirebaseContext, DoctorGlobalState } from './src/Contexts'
+import { AuthContext, FirebaseContext, DoctorContext, 
+        DoctorAppointmentContext } from './src/Contexts'
 import { doctorReducer } from './src/Reducers'
 import { createStackNavigator } from '@react-navigation/stack'
 import ACTION_TYPES from './src/ActionTypes'
@@ -56,7 +57,7 @@ export default function DoctorNavigator() {
   })
 
   return (
-    <DoctorGlobalState.Provider value={doctorContext}>
+    <DoctorContext.Provider value={doctorContext}>
       <DoctorStack.Navigator 
         initialRouteName="DoctorMainScreen"
         screenOptions={{
@@ -69,6 +70,6 @@ export default function DoctorNavigator() {
         <DoctorStack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
         
       </DoctorStack.Navigator>
-    </DoctorGlobalState.Provider>
+    </DoctorContext.Provider>
   )
 }
