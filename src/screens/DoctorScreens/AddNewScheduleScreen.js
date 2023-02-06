@@ -112,7 +112,7 @@ export default function AddNewScheduleScreen({ navigation }) {
         <Box safeArea flex={1} px={5} alignItems="center">
         <BackButton goBack={navigation.goBack} />
         <Header  style={styles.head}>Add New Schedules</Header>
-        <Button mode='contained' onPress={showDatepicker}>
+        <Button mode='contained' onPress={()=>{console.log(date.toDateString())}}>
             {date.toDateString()}
         </Button>
         <Box safeArea flex={1} my={2} borderRadius={10} shadow={2}  px={5} flexDirection='row' flexWrap={'wrap'} alignItems="center"  bg='#fff' width={'full'}>
