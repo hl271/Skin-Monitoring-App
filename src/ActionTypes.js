@@ -2,7 +2,8 @@ const ACTION_TYPES = {
     AUTH: {
         SIGN_IN: 'SIGN_IN',
         SIGN_OUT: 'SIGN_OUT',
-        SIGNING_IN: 'SIGNING_IN'
+        SIGNING_IN: 'SIGNING_IN',
+        REFRESH_TOKEN: 'REFRESH_TOKEN'
     },
     DOCTOR: {
         UPDATE_PROFILE: 'DOCTOR_UPDATE_PROFILE',

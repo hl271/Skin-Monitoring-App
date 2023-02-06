@@ -20,22 +20,73 @@ import Header from '../../components/Header';
 import Button from '../../components/Button';
 import { theme } from '../../core/theme';
 import detections from '../../data/Detections';
+import { RecordContext , AuthContext} from '../../Contexts';
+
+import {HASURA_GRAPHQL_ENDPOINT} from "@env";
 
 export default function DetectionHistoryScreen({ navigation }) {
-
+    const {records, addRecord} = React.useContext(RecordContext)
+    const {authState} = React.useContext(AuthContext)
+    React.useEffect(() => {
+        const fetchRecords = async () => {
+            try {
+                console.log("Fetching records...")
+                const query = `query MyQuery {
+                    record {
+                      accuracy
+                      disease {
+                        diseaseid
+                        diseasename
+                        relatedinfo
+                      }
+                      patientid
+                      pictureurl
+                      recordid
+                      recordtime
+                    }
+                  }`
+                const graphqlReq = {
+                    query: query
+                }
+                let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+                    method: 'POST',
+                    headers: {
+                    'content-type' : 'application/json', 
+                    'Authorization': "Bearer " + authState.userToken
+                    },
+                    body: JSON.stringify(graphqlReq)
+                })
+                hasuraRes = await hasuraRes.json()
+                if (hasuraRes["errors"]) {
+                    console.log(hasuraRes)
+                    throw Error("Error from GraphQL Server")
+                }
+                const recordResults = hasuraRes.data.record
+                if (recordResults.length > 0) {
+                    recordResults.map((record) => {
+                        addRecord(record)
+                    })
+                }
+            } catch(error) {
+                console.log("Error while fetching records")
+                console.log(error.message)
+            }
+        }
+        if (records.length == 0) fetchRecords()
+    }, []) // If set dependencies as records => the fetch function will run
+    //on infinite loops, because each time records change, fetch will be triggered again
     return (
       <NativeBaseProvider>
       <Box safeArea flex={1}  alignItems="center">
       <BackButton goBack={navigation.goBack} />
       <Header  style={styles.head}>List of Detections</Header>
       <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
-          {detections.map((detection)=>(
+          {records.map((record)=>(
+                
               <Pressable
                   onPress={() => {
-                    const image=detection.image;
-                    const time=detection.time;
-                    navigation.navigate("ResultScreen", {image, time})}}
-                  key={detection._id}
+                    navigation.navigate("ResultScreen", {record})}}
+                  key={record.recordid}
                   w="97%"
                   bg={"#FFFFFF"}
                   rounded="md"
@@ -50,15 +101,15 @@ export default function DetectionHistoryScreen({ navigation }) {
                                 <Image 
                                     style={styles.image}
                                     alt='image'
-                                    source={{ uri: detection.image }}
+                                    source={{ uri: record.pictureurl }}
                                 />  
                                 <VStack space={2} my={5}>
                                     <Header style={styles.header}>Date/Time</Header>
-                                    <Paragraph style={styles.paragraph}>{detection.time}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{record.recordtime}</Paragraph>
                                     <Header style={styles.header}>Result</Header>
-                                    <Paragraph style={styles.paragraph}>{detection.res}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{record.disease.diseasename}</Paragraph>
                                     <Header style={styles.header}>Accuracy</Header>
-                                    <Paragraph style={styles.paragraph}>{detection.accu}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{record.accuracy}</Paragraph>
                                 </VStack>
                                 
                             </HStack>

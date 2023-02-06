@@ -9,10 +9,59 @@ import { emailValidator } from '../../helpers/emailValidator'
 import { passwordValidator } from '../../helpers/passwordValidator'
 import { nameValidator } from '../../helpers/nameValidator'
 
+import { AuthContext, PatientContext } from "../../Contexts";
+
 export default function Profile({ navigation }) {
+    const {patientInfo, addNewPatient, updateProfile} = React.useContext(PatientContext)
+    const {authState} = React.useContext(AuthContext)
     const [name, setName] = useState({ value: '', error: '' })
     const [email, setEmail] = useState({ value: '', error: '' })
     const [password, setPassword] = useState({ value: '', error: '' })
+
+    React.useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                console.log("Fetching patient info...")
+                const query = `query MyQuery($patientid: String!) {
+                    patient_by_pk(patientid: $patientid) {
+                      birthday
+                      email
+                      fullname
+                      gender
+                    }
+                  }
+                  `
+                const graphqlReq = {
+                    query,
+                    variables: {
+                        patientid: authState.userId
+                    }
+                }
+                let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
+                    method: 'POST',
+                    headers: {
+                    'content-type' : 'application/json', 
+                    'Authorization': "Bearer " + authState.userToken
+                    },
+                    body: JSON.stringify(graphqlReq)
+                })
+                hasuraRes = await hasuraRes.json()
+                if (hasuraRes["errors"]) {
+                    console.log(hasuraRes)
+                    throw Error("Error from GraphQL Server")
+                }
+                const patientResult = hasuraRes.data.patient_by_pk
+                if (patientResult == null) throw Error("Patient Result not found!")
+                console.log("Fetched patient info")
+                console.log(patientResult)
+                addNewPatient(patientResult)
+            } catch(error) {
+                console.log("Error occured while fetch user")
+                console.log(error.messsage)
+            }
+        }
+        if (patientInfo.fullname == null) fetchUser()
+    }, [])
 
     const onUpdatePress = () => {
         const nameError = nameValidator(name.value)
@@ -35,7 +84,7 @@ export default function Profile({ navigation }) {
                 EDIT YOUR PROFILE
             </Header>
             <TextInput
-                label="Name"
+                label="Full Name"
                 returnKeyType="next"
                 value={name.value}
                 onChangeText={(text) => setName({ value: text, error: '' })}

@@ -17,7 +17,7 @@ import {AuthContext, FirebaseContext} from '../Contexts'
 
 import {signInWithEmailAndPassword} from 'firebase/auth'
 
-import {AUTH_API, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function LoginScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)  
@@ -56,41 +56,48 @@ export default function LoginScreen({ navigation }) {
         idTokenResult.claims["https://hasura.io/jwt/claims"];
 
       if (!hasuraClaim) throw "Hasura claims NOT exists"
+      const userRole = per
+      const userId = idTokenResult.claims.user_id
 
-      const query = `query findUserByEmail($email: String!) {
-        doctor(where: {email: {_eq: $email}}) {
-          fullname
-        }
-        patient(where: {email: {_eq: $email}}) {
+      const query = `query MyQuery($id: String!) {
+        ${userRole}_by_pk(${userRole}id: $id) {
+          email
+          ${userRole}id
           fullname
         }
       }`
 
-      const graphqlReq = { "query": query, "variables": { "email": email.value} }
-      // console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
+      const graphqlReq = { "query": query, "variables": { "id": userId} }
+      console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
+      console.log(graphqlReq)
       let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
         method: 'POST',
         headers: {
           'content-type' : 'application/json', 
-          'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
+          'Authorization': "Bearer " + userToken
         },
         body: JSON.stringify(graphqlReq)
       })
       hasuraRes = await hasuraRes.json()
-      // console.log(hasuraRes)
-      let role, userFullName
-      if (hasuraRes.data.doctor.length > 0) {
-        role = "doctor"
-        userFullName = hasuraRes.data.doctor[0].fullname
+      if (hasuraRes["errors"]) throw Error("Error from GraphQL Server")
+      console.log(hasuraRes)
+      if (hasuraRes.data[`${userRole}_by_pk`] == null) {
+        throw Error(`No user found with given role`)
       }
-      else if (hasuraRes.data.patient.length > 0) {
-        role = "patient"
-        userFullName = hasuraRes.data.patient[0].fullname
-      }
-      else throw "No user found on Hasura" 
-      console.log("Logged in as ", role)
+      const logUser = hasuraRes.data[`${userRole}_by_pk`]
+      // let role, userFullName
+      // if (hasuraRes.data.doctor.length > 0) {
+      //   role = "doctor"
+      //   userFullName = hasuraRes.data.doctor[0].fullname
+      // }
+      // else if (hasuraRes.data.patient.length > 0) {
+      //   role = "patient"
+      //   userFullName = hasuraRes.data.patient[0].fullname
+      // }
+      // else throw "No user found on Hasura" 
+      console.log("Logged in as ", userRole)
       
-      authContext.signIn(role, userToken, email.value, userFullName)
+      authContext.signIn(userRole, logUser[`${userRole}id`], userToken, logUser.email, logUser.fullname)
       
     } catch(error) {
       console.log("Error occured while sign in")
@@ -98,7 +105,10 @@ export default function LoginScreen({ navigation }) {
         setPassword({value:'', error: "Wrong Password!"})
       } else if (error.code == "auth/user-not-found") {
         setEmail({value: '', error: "Email doesn't exists!"})
-      } else {
+      } else if (error.message == "No user found with given role") {
+        setFormError(`No user found with given role`)
+      }
+      else {
         console.log(error)
         setFormError("Server Error. Please try again or try another account!")
       }

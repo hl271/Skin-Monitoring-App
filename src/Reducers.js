@@ -5,6 +5,7 @@ export function authReducer(prevState, action) {
         case ACTION_TYPES.AUTH.SIGN_IN: {
             return {
                 ...prevState,
+                userId: action.userId,
                 userToken: action.userToken,
                 userRole: action.userRole,
                 userEmail: action.userEmail,
@@ -26,6 +27,12 @@ export function authReducer(prevState, action) {
             return  {
                 ...prevState,
                 isSigningIn: action.isSigningIn
+            }
+        }
+        case ACTION_TYPES.AUTH.REFRESH_TOKEN: {
+            return {
+                ...prevState,
+                userToken: action.userToken
             }
         }
         default: {
@@ -78,7 +85,9 @@ export function patientReducer(prevState, action) {
             return {
                 ...prevState,
                 email: action.email,
-                fullname: action.fullname
+                fullname: action.fullname,
+                birthday: action.birthday, 
+                gender: action.gender
             }
         }
         default: {
@@ -91,10 +100,10 @@ export function recordReducer(prevState, action) {
     switch (action.type) {
         case ACTION_TYPES.RECORD.ADD_RECORD: {
             return [...prevState, {
-                id: action.recordid,
+                recordid: action.recordid,
                 pictureurl: action.pictureurl,
                 accuracy: action.accuracy,
-                disease: action.disease,
+                disease: {...action.disease},
                 recordtime: action.recordtime
             }]
         }

@@ -16,22 +16,25 @@ import {AuthContext, FirebaseContext} from './src/Contexts'
 import ACTION_TYPES from './src/ActionTypes'
 
 import app from './src/helpers/firebase'
-import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
+import {getAuth, onIdTokenChanged} from 'firebase/auth';
 import {getDatabase, ref, onValue} from 'firebase/database';
 
 const auth = getAuth(app)
 const database = getDatabase(app)
 
-import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT, AUTH_API} from "@env"
 
 const Stack = createStackNavigator()
 
 export default function App() {
   // const authContext = React.useContext(AuthContext)
   // const {authState} = authContext
+  // console.log(AUTH_API)
+  // console.log(X_HASURA_ADMIN_SECRET)
   const [authState, authDispatch] = React.useReducer(authReducer, {
     userToken: null,
     userRole: null,
+    userToken: null,
     userEmail: null,
     userFullName: null,
     signedIn: false,
@@ -52,23 +55,27 @@ export default function App() {
 
             const userToken = await user.getIdToken();
             const idTokenResult = await user.getIdTokenResult();  
-            // console.log("tokenresult: ", idTokenResult)
+            // console.log(idTokenResult)
             
             const hasuraClaim =
               idTokenResult.claims["https://hasura.io/jwt/claims"];
   
             if (!hasuraClaim) throw "Hasura claims NOT exists"
+            const userId = idTokenResult.claims.user_id
     
-            const query = `query findUserByEmail($email: String!) {
-              doctor(where: {email: {_eq: $email}}) {
+            const query = `query findUser($id: String!) {
+              doctor_by_pk(doctorid: $id) {
+                email
+                doctorid
                 fullname
               }
-              patient(where: {email: {_eq: $email}}) {
+              patient_by_pk(patientid: $id) {
+                email
+                patientid
                 fullname
               }
-            }`
-      
-            const graphqlReq = { "query": query, "variables": { "email": user.email} }
+            }`      
+            const graphqlReq = { "query": query, "variables": { "id": userId} }
             let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
               method: 'POST',
               headers: {
@@ -78,19 +85,20 @@ export default function App() {
               body: JSON.stringify(graphqlReq)
             })
             hasuraRes = await hasuraRes.json()
+            if (hasuraRes["errors"]) throw Error("Error from GraphQL Server")
             // console.log(hasuraRes)
-            let role, userFullName
-            if (hasuraRes.data.doctor.length > 0) {
+            let role, logUser
+            if (hasuraRes.data['doctor_by_pk'] !== null) {
               role = "doctor"
-              userFullName = hasuraRes.data.doctor[0].fullname
+              logUser = hasuraRes.data['doctor_by_pk']
             }
-            else if (hasuraRes.data.patient.length > 0) {
+            else if (hasuraRes.data['patient_by_pk']) {
               role = "patient"
-              userFullName = hasuraRes.data.patient[0].fullname
+              logUser = hasuraRes.data['patient_by_pk']
             }
             else throw "No user found on Hasura" 
             console.log("Logged in as ", role)
-            authContext.signIn(role, userToken, user.email, userFullName)
+            authContext.signIn(role, userId, userToken, logUser.email, logUser.fullname)
           }          
         } else {
           authContext.signOut()
@@ -101,16 +109,29 @@ export default function App() {
       }
     });
   }, [])
+  React.useEffect(() => {
+    return auth.onIdTokenChanged((user) => {
+      console.log("Id Token changed")
+      if (user) {
+        const userToken = user.getIdToken()
+        console.log("token refreshed")
+        authContext.refreshToken(userToken)
+      }
+    })
+  }, [])
 
   const authContext = React.useMemo(
     () => ({
-      signIn: (userRole, userToken, userEmail, userFullName) => {
-        authDispatch({ type: ACTION_TYPES.AUTH.SIGN_IN,  userRole, userToken, userEmail, userFullName});
+      signIn: (userRole, userId, userToken, userEmail, userFullName) => {
+        authDispatch({ type: ACTION_TYPES.AUTH.SIGN_IN,  userRole, userId, userToken, userEmail, userFullName});
       },
       signOut: () => authDispatch({ type: ACTION_TYPES.AUTH.SIGN_OUT }),
       signingIn: (isSigningIn) => {
         console.log("issigningin change to ", isSigningIn)
         authDispatch({type: ACTION_TYPES.AUTH.SIGNING_IN, isSigningIn})
+      },
+      refreshToken: (userToken) => {
+        authDispatch({type: ACTION_TYPES.AUTH.REFRESH_TOKEN, userToken})
       },
       authState
     }),

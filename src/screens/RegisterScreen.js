@@ -26,6 +26,8 @@ import {getDatabase, ref, onValue} from 'firebase/database';
 import {AUTH_API, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function RegisterScreen({ navigation }) {
+  console.log(AUTH_API)
+  // console.log(HASURA_GRAPHQL_ENDPOINT)
   const authContext = React.useContext(AuthContext)  
   const {auth, app} = React.useContext(FirebaseContext)
 
@@ -75,20 +77,31 @@ export default function RegisterScreen({ navigation }) {
       const hasuraClaim =
             idTokenResult.claims["https://hasura.io/jwt/claims"];
       if (!hasuraClaim) throw Error("Hasura Claims not exist!")
-      console.log("Hasura claims exists!!")
+      const userId = idTokenResult.claims.user_id
+      if (!userId) throw Error("UserId not exist!")
+      // console.log(idTokenResult)
+      // if (idTokenResult.uid) throw Error("User id not exists")
+      // console.log("User id exists!!")
       const userFullName = name.value
       const userRole = per.toLowerCase()
       const userEmail = email.value;
       const upsertQuery = `
-      mutation($userEmail: String!, $userFullName: String!){
-        insert_${userRole}_one(object: { fullname: $userFullName, email: $userEmail }) {
+      mutation($userEmail: String!, $userFullName: String!, $${userRole}id: String!){
+        insert_${userRole}_one(object: {${userRole}id: $${userRole}id, fullname: $userFullName, email: $userEmail }) {
           ${userRole}id,
           email
         }
       }`      
-      const graphqlReq = { "query": upsertQuery, "variables": { "userFullName": userFullName, "userEmail":  userEmail} }
+      const graphqlReq = { 
+        "query": upsertQuery, 
+        "variables": { 
+          "userFullName": userFullName, 
+          "userEmail":  userEmail,
+          [`${userRole}id`]: userId
+        } 
+      }
       console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
-      console.log(`${X_HASURA_ADMIN_SECRET}`)
+      // console.log(graphqlReq)
       let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
         method: 'POST',
         headers: {
@@ -98,9 +111,10 @@ export default function RegisterScreen({ navigation }) {
         body: JSON.stringify(graphqlReq)
       })
       hasuraRes = await hasuraRes.json()
-      console.log(hasuraRes)
+      if (hasuraRes["errors"]) throw Error("Error from GraphQL Server")
+      // console.log(hasuraRes)
       
-      authContext.signIn(userRole, userToken, userEmail, userFullName)    
+      authContext.signIn(userRole, userId, userToken, userEmail, userFullName)    
     } catch (error) {
       console.log("Error occured while register")
       if (error.code && error.code == "auth/email-already-in-use") {

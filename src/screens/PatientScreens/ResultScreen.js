@@ -18,11 +18,11 @@ import Paragraph from '../../components/Paragraph';
 import Header from '../../components/Header';
 import Button from '../../components/Button';
 import { theme } from '../../core/theme';
+import { acc } from 'react-native-reanimated';
 
 export default function ResultScreen({ route, navigation }) {
-    const { image, currentDate }=route.params;
-    const result='cancer';
-    const accu='90%';
+    const { record }=route.params;
+    const {recordid, pictureurl, accuracy, disease, patientid, recordtime}=record;
 
     return (
             <NativeBaseProvider >
@@ -35,23 +35,24 @@ export default function ResultScreen({ route, navigation }) {
                                 <Image 
                                     style={styles.image}
                                     alt='image'
-                                    source={{ uri: image }}
+                                    source={{ uri: pictureurl }}
                                 />  
                                 <VStack space={2} my={5}>
                                     <Header style={styles.header}>Date/Time</Header>
-                                    <Paragraph style={styles.paragraph}>{currentDate}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{recordtime}</Paragraph>
                                     <Header style={styles.header}>Result</Header>
-                                    <Paragraph style={styles.paragraph}>{result}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{disease.diseasename}</Paragraph>
                                     <Header style={styles.header}>Accuracy</Header>
-                                    <Paragraph style={styles.paragraph}>{accu}</Paragraph>
+                                    <Paragraph style={styles.paragraph}>{accuracy}</Paragraph>
                                 </VStack>
                                 
                             </HStack>
                             
                             <Paragraph style={styles.paragraph}>
-                                Plastic is an excellent material to protect food
+                                {disease.relatedinfo}
                             </Paragraph>
                             <Button mode="contained" onPress={()=>navigation.navigate("DoctorsListScreen")}>Set an Appointment</Button>
+                            <Button mode="outlined" onPress={()=>navigation.navigate("DetectionHistoryScreen")}>View all records</Button>
                         </VStack>
                     </ScrollView>
                 </Box>

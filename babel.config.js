@@ -10,6 +10,6 @@ module.exports = {
       "safe": false,
       "allowUndefined": false,
       "verbose": false
-    }]
+    }], ['react-native-reanimated/plugin'],
   ]
 };

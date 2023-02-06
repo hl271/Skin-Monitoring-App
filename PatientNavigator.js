@@ -13,7 +13,7 @@ import {
 
 import { AuthContext, FirebaseContext, PatientContext, 
   RecordContext, PatientAppointmentContext, DoctorListContext } from './src/Contexts'
-import { patientReducer } from './src/Reducers'
+import { patientReducer, recordReducer, patientAppointmentReducer, doctorListReducer } from './src/Reducers'
 import { createStackNavigator } from '@react-navigation/stack'
 import ACTION_TYPES from './src/ActionTypes'
 
@@ -30,21 +30,45 @@ export default function PatientNavigator()  {
     birthday: null
   })
 
+  const [records, recordsDispatch] = React.useReducer(recordReducer, [])
+  const [appointments, appointmentsDispatch] = React.useReducer(patientAppointmentReducer, [])
+  const [doctorList, doctorListDispatch] = React.useReducer(doctorListReducer, [])
+
   const patientContext = React.useMemo(() => ({
-    addNewPatient: (email, fullname) => {
-      patientInfoDispatch({type: ACTION_TYPES.PATIENT.ADD_PATIENT, email, fullname})
+    addNewPatient: (newPatient) => {
+      patientInfoDispatch({type: ACTION_TYPES.PATIENT.ADD_PATIENT, ...newPatient})
+    },
+    updateProfile: (birthday, gender, fullname) => {
+      patientInfoDispatch({type: ACTION_TYPES.PATIENT.UPDATE_PROFILE, fullname, birthday, gender})
     },
     patientInfo
   }), [patientInfo])
+
+  const recordContext = React.useMemo(() => ({
+    records,
+    addRecord: (recordObj) => {
+      // const {id, pictureurl, accuracy, 
+      //       diseasename, realatedinfo, patientid, recordtime} = recordObj
+      recordsDispatch({type: ACTION_TYPES.RECORD.ADD_RECORD, ...recordObj})
+    }
+  }), [records])
+
+  const appointmentContext = React.useMemo(() => ({
+    appointments
+  }), [appointments])
+
+  const doctorListContext = React.useMemo(() => ({
+    doctorList
+  }), [doctorList])
 
   React.useEffect(()=> {
     
   })
   return (
     <PatientContext.Provider value={patientContext}>
-      <RecordContext.Provider >
-        <PatientAppointmentContext.Provider>
-          <DoctorListContext.Provider>
+      <RecordContext.Provider  value={recordContext}>
+        <PatientAppointmentContext.Provider value={appointmentContext}>
+          <DoctorListContext.Provider value={doctorListContext}>
             <PatientStack.Navigator
               initialRouteName="PatientMainScreen"
               screenOptions={{
