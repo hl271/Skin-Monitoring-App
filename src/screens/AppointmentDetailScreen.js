@@ -23,7 +23,7 @@ import Paragraph from '../components/Paragraph';
 
 export default function AppointmentDetailScreen({ route, navigation }) {
     const doctor=route.params;
-    const [availDates, setAvailDates]=useState(["22/11/23", "22/33/22"]);
+    const [availDates, setAvailDates]=useState(["22/11/23 08:30", "22/33/22 14:30"]);
     const [date, setDate]=useState(null);
 
     const onSubmit=()=>{
