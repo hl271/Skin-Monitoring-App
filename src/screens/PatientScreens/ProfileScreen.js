@@ -8,15 +8,22 @@ import BackButton from "../../components/BackButton";
 import { emailValidator } from '../../helpers/emailValidator'
 import { passwordValidator } from '../../helpers/passwordValidator'
 import { nameValidator } from '../../helpers/nameValidator'
+import { RadioButton } from "react-native-paper";
+import SelectDropdown from "react-native-select-dropdown";
 
 import { AuthContext, PatientContext } from "../../Contexts";
 
+import {HASURA_GRAPHQL_ENDPOINT} from '@env'
+
 export default function Profile({ navigation }) {
+    // console.log(HASURA_GRAPHQL_ENDPOINT)
     const {patientInfo, addNewPatient, updateProfile} = React.useContext(PatientContext)
     const {authState} = React.useContext(AuthContext)
     const [name, setName] = useState({ value: '', error: '' })
     const [email, setEmail] = useState({ value: '', error: '' })
     const [password, setPassword] = useState({ value: '', error: '' })
+    const [sex, setSex] = useState(null)
+    const [birthdate, setBirthdate] = useState(null)
 
     React.useEffect(() => {
         const fetchUser = async () => {
@@ -55,12 +62,16 @@ export default function Profile({ navigation }) {
                 console.log("Fetched patient info")
                 console.log(patientResult)
                 addNewPatient(patientResult)
+                setSex(patientInfo.gender)
+                setBirthdate(patientInfo.birthday)
+                setName({value: patientInfo.fullname})
+                console.log(patientInfo)
             } catch(error) {
                 console.log("Error occured while fetch user")
                 console.log(error.messsage)
             }
         }
-        if (patientInfo.fullname == null) fetchUser()
+        if (!patientInfo.fullname) fetchUser()
     }, [])
 
     const onUpdatePress = () => {
@@ -84,33 +95,32 @@ export default function Profile({ navigation }) {
                 EDIT YOUR PROFILE
             </Header>
             <TextInput
-                label="Full Name"
+                label={name.value}
                 returnKeyType="next"
                 value={name.value}
                 onChangeText={(text) => setName({ value: text, error: '' })}
                 error={!!name.error}
                 errorText={name.error}
             />
-            <TextInput
-                label="Email"
-                returnKeyType="next"
-                value={email.value}
-                onChangeText={(text) => setEmail({ value: text, error: '' })}
-                error={!!email.error}
-                errorText={email.error}
-                autoCapitalize="none"
-                autoCompleteType="email"
-                textContentType="emailAddress"
-                keyboardType="email-address"
-            />
-            <TextInput
-                label="Password"
-                returnKeyType="done"
-                value={password.value}
-                onChangeText={(text) => setPassword({ value: text, error: '' })}
-                error={!!password.error}
-                errorText={password.error}
-                secureTextEntry
+            <SelectDropdown 
+              rowStyle={{ margin: 10}}
+              data={["M", "F"]}
+              onSelect={(selectedItem, index) => {
+                // console.log(selectedItem, index)
+                setSex(selectedItem)
+              }}
+              buttonTextAfterSelection={(selectedItem, index) => {
+                // text represented after item is selected
+                // if data array is an array of objects then return selectedItem.property to render after item is selected
+                if (selectedItem == "M") return "Male (M)"
+                else if (selectedItem =="F") return "Female (F)"
+              }}
+              rowTextForSelection={(item, index) => {
+                // text represented for each item in dropdown
+                // if data array is an array of objects then return item.property to represent item in dropdown
+                if (item == "M") return "Male (M)"
+                else if (item =="F") return "Female (F)"
+              }}
             />
             <Button
                 mode="contained"
