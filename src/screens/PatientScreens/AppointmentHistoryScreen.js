@@ -25,9 +25,10 @@ export default function AppointmentHistoryScreen({ navigation }) {
 
     return (
       <NativeBaseProvider>
-      <Box safeArea flex={1}  alignItems="center">
+      <Box safeArea mx={5} flex={1}  alignItems="center">
       <BackButton goBack={navigation.goBack} />
       <Header  style={styles.head}>List of Appointments</Header>
+      <Button mode='contained' icon='calendar-plus' onPress={()=>navigation.navigate('DoctorsListScreen')}> New Appointment</Button>
       <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
           {appointments.map((appointment)=>(
               <Box
@@ -86,11 +87,12 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
   },
   head: {
-      paddingTop: '10%',
+      marginTop: '20%',
       fontSize: 30,
       color: theme.colors.primary,
       fontWeight: 'bold',
-      paddingVertical: 12,
+      marginBottom: 10
+    //   paddingVertical: 12,
   },
   paragraph: {
       fontSize: 15,

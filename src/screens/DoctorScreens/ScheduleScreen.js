@@ -4,7 +4,6 @@ import { Text } from 'react-native-paper'
 import Header from '../../components/Header'
 import Button from '../../components/Button'
 import BackButton from '../../components/BackButton'
-import schedules from '../../data/Schedules'
 import {
     Box,
     Heading,
@@ -19,20 +18,22 @@ import {
   } from "native-base";
 import { StyleSheet, ImageBackground } from 'react-native'
 import { theme } from '../../core/theme';
+import { DoctorAppointmentContext } from '../../Contexts'
 
 export default function ScheduleScreen({ navigation }) {
+    const {appointdates, addAppointDate} = React.useContext(DoctorAppointmentContext)
 
     return (
         <NativeBaseProvider>
         <Box safeArea flex={1} px={5}  alignItems="center">
         <BackButton goBack={navigation.goBack} />
-        <Header  style={styles.head}>My Schedules</Header>
+        <Header  style={styles.head}>My Appointments</Header>
         <Button mode='contained' icon='calendar-plus' onPress={()=>navigation.navigate('AddNewScheduleScreen')}> New Schedule</Button>
         <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
-            {schedules.map((schedule)=>(
+            {!!appointdates && [...appointdates].reverse().map((appointdate)=>(
                 
                 <Box
-                    key={schedule._id}
+                    key={appointdate.appointdateid}
                     w="full"
                     bg={"#FFFFFF"}
                     rounded="md"
@@ -44,12 +45,12 @@ export default function ScheduleScreen({ navigation }) {
                     width="100%"
                 >
                     <VStack space={2} pt={2}>
-                        <Header style={styles.header}>{schedule._id}</Header>
+                        <Header style={styles.header}>{appointdate.appointdate}</Header>
 
                         <HStack space={2} pt="3" pb="3" pl="6" flex={1} flexWrap={'wrap'}>
-                          {schedule.hours.map((hour)=>(
-                            <Box key={hour}      borderWidth= {1}  borderRadius= {10} alignItems="center"
-                            borderColor= "#560CCE" width="40%" my={2} m={'auto'} p={1}>{hour}</Box>
+                          {appointdate.appointtimes.map((appointtime)=>(
+                            <Box key={appointtime.appointtimeid}      borderWidth= {1}  borderRadius= {10} alignItems="center"
+                            borderColor= "#560CCE" width="40%" my={2} m={'auto'} p={1}>{appointtime.starttime} - {appointtime.endtime}</Box>
                           ))}
                         </HStack>
                   </VStack>

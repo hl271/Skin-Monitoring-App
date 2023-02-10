@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, StyleSheet, Image, ActivityIndicator} from 'react-native';
 import Constants from 'expo-constants';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
@@ -9,7 +9,6 @@ import Slider from '@react-native-community/slider';
 import SelectDropdown from 'react-native-select-dropdown';
 import uuid from 'react-uuid'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import axios from 'axios';
 
 import app from '../../helpers/firebase'
 import { getAuth } from 'firebase/auth';
@@ -79,20 +78,25 @@ export default function CameraScreen({ navigation }) {
         //Compress image
         const manipImgResult = await manipulateAsync(
           imageURI,
-          [{resize: {height: 900}}],
+          [{resize: {height: 600}}],
           {compress: 0.5, format: SaveFormat.JPEG}
         )
-        setImage(manipImgResult.uri)
+        // !IMPORTANT:
+        // setState() is ASYNC FUNCTION THAT DOESN't RETURN A PROMISE,
+        // hence it cannot be used within a function
+        // => must use useEffect(()=> {}, [state]) to track for state change
+        // or simply setState at the end
+        // setImage(manipImgResult.uri)
         // console.log(imageURI)
-        console.log("Resize image to fix height of 900px and compress to 50%")
-        const res = await fetch(imageURI)
+        console.log("Resize image to fix height of 600px and compress to 50%")
+        const res = await fetch(manipImgResult.uri)
         const imageBlob = await res.blob()  
         // Upload image to AI API to detect result
         const formData = new FormData()
         formData.append("files", {
           type: 'image/jpeg',
           name: 'random',
-          uri: imageURI
+          uri: manipImgResult.uri
         })
         const imageId = uuid()
         const uploadRes = await fetch(`${AI_API}/upload/${imageId}`, {

@@ -29,12 +29,7 @@ export default function DoctorMainScreen({ navigation }) {
   
   React.useEffect(() => {
     
-    if (authContext.authState.signedIn && !doctorInfo.fullname) {
-      console.log("Add doctor")
-      const userFullName = authContext.authState.userFullName
-      const userEmail = authContext.authState.userEmail
-      addNewDoctor(userEmail, userFullName)
-    }
+   
   }, [])
   
   const name= <Text>{doctorInfo.fullname}</Text>;
@@ -48,19 +43,13 @@ export default function DoctorMainScreen({ navigation }) {
         icon="calendar-month"
         onPress={() => {navigation.navigate('ScheduleScreen')}}
       >
-          My Schedule
+          My Appontments
       </Button>
-      <Button
-        mode='outlined'
-        icon="format-list-text"
-        onPress={() => {navigation.navigate('MyAppointmentScreen')}}
-      >
-          My Appointment
-      </Button>
+      
       <Button
         mode='outlined'
         icon="account-circle"
-        onPress={()=>{navigation.navigate('ProfileScreen')}}
+        onPress={()=>{navigation.navigate('DoctorProfileScreen')}}
       >
           Edit Profile
       </Button>

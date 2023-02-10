@@ -17,7 +17,7 @@ import {AuthContext, FirebaseContext} from '../Contexts'
 
 import {signInWithEmailAndPassword} from 'firebase/auth'
 
-import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
+import graphqlReq from '../helpers/graphqlReq'
 
 export default function LoginScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)  
@@ -66,20 +66,8 @@ export default function LoginScreen({ navigation }) {
           fullname
         }
       }`
-
-      const graphqlReq = { "query": query, "variables": { "id": userId} }
-      console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
-      console.log(graphqlReq)
-      let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-        method: 'POST',
-        headers: {
-          'content-type' : 'application/json', 
-          'Authorization': "Bearer " + userToken
-        },
-        body: JSON.stringify(graphqlReq)
-      })
-      hasuraRes = await hasuraRes.json()
-      if (hasuraRes["errors"]) throw Error("Error from GraphQL Server")
+      const variables = { "id": userId}
+      let hasuraRes = await graphqlReq(query, {...variables}, userToken)
       console.log(hasuraRes)
       if (hasuraRes.data[`${userRole}_by_pk`] == null) {
         throw Error(`No user found with given role`)

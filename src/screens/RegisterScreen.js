@@ -26,7 +26,7 @@ import {getDatabase, ref, onValue} from 'firebase/database';
 import {AUTH_API, X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 export default function RegisterScreen({ navigation }) {
-  console.log(AUTH_API)
+  // console.log(AUTH_API)
   // console.log(HASURA_GRAPHQL_ENDPOINT)
   const authContext = React.useContext(AuthContext)  
   const {auth, app} = React.useContext(FirebaseContext)
@@ -61,6 +61,8 @@ export default function RegisterScreen({ navigation }) {
       const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
       const userToken = await res.user.getIdToken()
       // Update Custom Claims of User on Server
+      // console.log(HASURA_GRAPHQL_ENDPOINT)
+      console.log(AUTH_API)
       console.log(`${AUTH_API}/set-custom-claims`)
       let claimsRes = await fetch(`${AUTH_API}/set-custom-claims`, {
         method: 'POST',

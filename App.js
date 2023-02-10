@@ -9,8 +9,8 @@ import {
   RegisterScreen,
   ResetPasswordScreen,
 } from './src/screens'
-import PatientNavigator from './PatientNavigator'
-import DoctorNavigator from './DoctorNavigator'
+import PatientNavigator from './src/PatientNavigator'
+import DoctorNavigator from './src/DoctorNavigator'
 import {authReducer} from './src/Reducers'
 import {AuthContext, FirebaseContext} from './src/Contexts'
 import ACTION_TYPES from './src/ActionTypes'
@@ -30,7 +30,7 @@ export default function App() {
   // const authContext = React.useContext(AuthContext)
   // const {authState} = authContext
   // console.log(AUTH_API)
-  // console.log(X_HASURA_ADMIN_SECRET)
+  // console.log(HASURA_GRAPHQL_ENDPOINT)
   const [authState, authDispatch] = React.useReducer(authReducer, {
     userToken: null,
     userRole: null,
@@ -43,6 +43,8 @@ export default function App() {
 
   React.useEffect(() => {
     return auth.onAuthStateChanged(async user => {
+      // console.log(HASURA_GRAPHQL_ENDPOINT)
+      // console.log(AUTH_API)
       console.log("Detect auth state change")
       // console.log(user)
       try {
@@ -110,10 +112,10 @@ export default function App() {
     });
   }, [])
   React.useEffect(() => {
-    return auth.onIdTokenChanged((user) => {
+    return auth.onIdTokenChanged( async (user) => {
       console.log("Id Token changed")
-      if (user) {
-        const userToken = user.getIdToken()
+      if (user && authState.signedIn) {
+        const userToken = await user.getIdToken()
         console.log("token refreshed")
         authContext.refreshToken(userToken)
       }

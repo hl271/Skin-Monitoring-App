@@ -27,39 +27,7 @@ export default function PatientMainScreen({ navigation }) {
     }
   }
   
-  React.useEffect(()=> {
-    if (authContext.authState.signedIn && !patientInfo.fullname) {
-      const {userFullName, userEmail} = authContext.authState
-      addNewPatient(userEmail, userFullName)
-    }
-    // const fetchPatient = async (email) => {
-    //   try {
-    //     const query = `query findPatientByEmail($email: String!) {
-    //       patient(where: {email: {_eq: $email}}) {
-    //         patientid
-    //         gender
-    //         fullname
-    //         email
-    //         birthday
-    //       }
-    //     }`
-    //     const graphqlReq = { "query": query, "variables": { "email": email} }
-    //     let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-    //       method: 'POST',
-    //       headers: {
-    //         'content-type' : 'application/json', 
-    //         'x-hasura-admin-secret': X_HASURA_ADMIN_SECRET
-    //       },
-    //       body: JSON.stringify(graphqlReq)
-    //     })
-    //     hasuraRes = await hasuraRes.json()
-    //     console.log("Fetched user on hasura")
-    //   } catch (error) {
-        
-    //   }
-    // }
-    // fetchPatient()
-  }, [])
+
   const name= <Text>{patientInfo.fullname}</Text>;
 
   return (
@@ -70,28 +38,28 @@ export default function PatientMainScreen({ navigation }) {
         icon="camera"
         onPress={() => {navigation.navigate('CameraScreen')}}
       >
-          Take your skin's photo
+          Take skin's photo
       </Button>
       <Button
         mode='outlined'
         icon="account-circle"
         onPress={() => {navigation.navigate('ProfileScreen')}}
       >
-          Edit your profile
-      </Button>
-      <Button
-        mode='outlined'
-        icon="plus-box"
-        onPress={()=>{navigation.navigate('DoctorsListScreen')}}
-      >
-          Set an Appointment
+          Edit profile
       </Button>
       <Button
         mode='outlined'
         icon="view-list"
-        onPress={()=>navigation.navigate('HistoryScreen')}
+        onPress={()=>{navigation.navigate('AppointmentHistoryScreen')}}
       >
-          View your detection history
+          My Appointments
+      </Button>
+      <Button
+        mode='outlined'
+        icon="view-list"
+        onPress={()=>navigation.navigate('DetectionHistoryScreen')}
+      >
+          My detection history
       </Button>
       <Button
         mode='outlined'

@@ -12,6 +12,7 @@ import { StyleSheet } from 'react-native';
     Item,
     NativeBaseProvider,
     Text,
+    Container
   } from "native-base";
 import Header from '../../components/Header';
 import { theme } from '../../core/theme';
@@ -22,7 +23,7 @@ import {Picker} from '@react-native-picker/picker';
 import Paragraph from '../../components/Paragraph';
 
 export default function AppointmentDetailScreen({ route, navigation }) {
-    const doctor=route.params;
+    const {doctor}=route.params;
     const [availDates, setAvailDates]=useState(["22/11/23 08:30", "22/33/22 14:30"]);
     const [date, setDate]=useState(null);
 
@@ -33,27 +34,29 @@ export default function AppointmentDetailScreen({ route, navigation }) {
 
     return (
         <NativeBaseProvider>
+            
             <BackButton goBack={navigation.goBack} />
-            <Box safeArea flex={1}>
+            <Box safeArea flex={1} mx={4} mt={6}>
+                <Header  style={styles.head}>Set Appointment</Header>
                 <ScrollView px={5} showsVerticalScrollIndicator={false} flex={1}>
                         <VStack space={2} >
-                            <HStack space={5} pt="6" pb="6" flex={1}>
+                            <HStack space={1} pt="6" pb="6" flex={1}>
                                 <Image 
                                     style={styles.image}
                                     alt='image'
-                                    source={{ uri: doctor.image }}
+                                    source={{ uri: doctor.profilepicture }}
                                 />  
                                 <VStack space={2} my={5}>
-                                    <Header style={styles.header}>Name:</Header>
-                                    <Paragraph style={styles.paragraph}>{doctor.name}</Paragraph>
-                                    <Header style={styles.header}>Work Address:</Header>
-                                    <Paragraph style={styles.paragraph}>{doctor.address}</Paragraph>
+                                    <Heading size="md" py={0} my={0}>{doctor.fullname}</Heading>
+                                    <Container>
+                                        <Text fontSize="md">{doctor.workaddress}</Text>
+                                    </Container>
                                 </VStack>
                                 
                             </HStack>
                             <Header>Description</Header>
                             <Paragraph style={styles.paragraph}>
-                                Plastic is an excellent material to protect food
+                                {doctor.about}
                             </Paragraph>
                             <Header>Available Schedule:</Header>
 

@@ -10,8 +10,8 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import Colors from "../../color";
-import AppointmentHistoryScreen from "./AppointmentHistoryScreen";
-import DetectionHistoryScreen from "./DetectionHistoryScreen";
+import AppointmentHistoryScreen from "../PatientScreens/AppointmentHistoryScreen";
+import DetectionHistoryScreen from "../PatientScreens/DetectionHistoryScreen";
 import { theme } from '../../core/theme';
 import BackButton from "../../components/BackButton";
 

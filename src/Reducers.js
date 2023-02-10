@@ -1,4 +1,8 @@
 import ACTION_TYPES from "./ActionTypes";
+import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
+
 
 export function authReducer(prevState, action) {
     switch (action.type) {
@@ -46,10 +50,7 @@ export function doctorReducer(prevState, action) {
         case ACTION_TYPES.DOCTOR.UPDATE_PROFILE: {
             return {
                 ...prevState,
-                fullname: action.fullname,
-                workaddress: action.workaddress,
-                about: action.about,
-                profilepicture: action.profilepicture
+                ...action.payload
             }
         }
         case ACTION_TYPES.DOCTOR.UPDATE_VERIFY_STATUS: {
@@ -61,8 +62,7 @@ export function doctorReducer(prevState, action) {
         case ACTION_TYPES.DOCTOR.ADD_DOCTOR: {
             return {
                 ...prevState,
-                email: action.email,
-                fullname: action.fullname
+                ...action.payload
             }
         }
         default: {
@@ -82,6 +82,8 @@ export function patientReducer(prevState, action) {
             }
         }
         case ACTION_TYPES.PATIENT.ADD_PATIENT: {
+            // console.log("Action props")
+            // console.log(action)
             return {
                 ...prevState,
                 email: action.email,
@@ -121,17 +123,55 @@ export function patientAppointmentReducer(prevState, action) {
         }
     }
 }
+
+export function doctorAppointmentReducer(prevState, action) {
+    switch (action.type) {
+        case ACTION_TYPES.DOCTOR_APPOINTMENT.ADD_APPOINT_DATE: {
+            const duplicatedAppointDate = prevState.find((appointdate) => {
+                if (appointdate.appointdateid === action.appointdateid) {
+                    return true
+                }
+            })
+            if (!!duplicatedAppointDate) {
+                return [...prevState]
+            } else {
+                return [...prevState, {
+                    appointdate: action.appointdate,
+                    appointdateid: action.appointdateid,
+                    appointtimes: []
+                }]
+
+            }
+        }
+        case ACTION_TYPES.DOCTOR_APPOINTMENT.ADD_APPOINT_TIME: {
+            action.appointtime.starttime = dayjs(action.appointtime.starttime, 'HH:mm:ss').format('HH:mm')
+            action.appointtime.endtime = dayjs(action.appointtime.endtime, 'HH:mm:ss').format('HH:mm')
+            return prevState.map((date) => {
+                if (date.appointdateid === action.appointdateid) {
+                    return {
+                        appointdate: date.appointdate,
+                        appointdateid: date.appointdateid,
+                        appointtimes: [...date.appointtimes, {...action.appointtime}]
+                    }
+                } else {
+                    return {...date}
+                }
+            })
+        }
+    }
+}
 export function doctorListReducer(prevState, action) {
     switch(action.type) {
         case ACTION_TYPES.DOCTOR_LIST.FETCH_DOCTOR: {
             return [...prevState, {
                 doctorid: action.doctorid,
                 fullname: action.fullname,
-                workaddress: action.workaddess,
+                workaddress: action.workaddress,
                 about: action.about,
                 profilepicture: action.profilepicture,
                 phonenumber: action.phonenumber,
                 email: action.email,
+                isapproved: action.isapproved,
                 schedules: null
             }]
         }

@@ -22,57 +22,13 @@ import { theme } from '../../core/theme';
 import detections from '../../data/Detections';
 import { RecordContext , AuthContext} from '../../Contexts';
 
-import {HASURA_GRAPHQL_ENDPOINT} from "@env";
-
 export default function DetectionHistoryScreen({ navigation }) {
     const {records, addRecord} = React.useContext(RecordContext)
     const {authState} = React.useContext(AuthContext)
+    const [isFetchingRecords, setReload] = useState(false)
     React.useEffect(() => {
-        const fetchRecords = async () => {
-            try {
-                console.log("Fetching records...")
-                const query = `query MyQuery {
-                    record {
-                      accuracy
-                      disease {
-                        diseaseid
-                        diseasename
-                        relatedinfo
-                      }
-                      patientid
-                      pictureurl
-                      recordid
-                      recordtime
-                    }
-                  }`
-                const graphqlReq = {
-                    query: query
-                }
-                let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-                    method: 'POST',
-                    headers: {
-                    'content-type' : 'application/json', 
-                    'Authorization': "Bearer " + authState.userToken
-                    },
-                    body: JSON.stringify(graphqlReq)
-                })
-                hasuraRes = await hasuraRes.json()
-                if (hasuraRes["errors"]) {
-                    console.log(hasuraRes)
-                    throw Error("Error from GraphQL Server")
-                }
-                const recordResults = hasuraRes.data.record
-                if (recordResults.length > 0) {
-                    recordResults.map((record) => {
-                        addRecord(record)
-                    })
-                }
-            } catch(error) {
-                console.log("Error while fetching records")
-                console.log(error.message)
-            }
-        }
-        if (records.length == 0) fetchRecords()
+        
+        
     }, []) // If set dependencies as records => the fetch function will run
     //on infinite loops, because each time records change, fetch will be triggered again
     return (
@@ -81,7 +37,7 @@ export default function DetectionHistoryScreen({ navigation }) {
       <BackButton goBack={navigation.goBack} />
       <Header  style={styles.head}>List of Detections</Header>
       <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
-          {records.map((record)=>(
+          {[...records].reverse().map((record)=>(
                 
               <Pressable
                   onPress={() => {
