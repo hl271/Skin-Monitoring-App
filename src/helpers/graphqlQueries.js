@@ -87,7 +87,26 @@ const graphqlQueries = {
         `
     },
     doctorApp: {
-      
+      FetchUpcomingAppointDates: `query FetchUpcomingAppointDates($_datemin: date!) {
+        appointdate(where: {appointdate: {_gte: $_datemin}}, order_by: {appointdate: asc}) {
+          appointtimes {
+            appointtimeid
+            endtime
+            isbooked
+            starttime
+            patient {
+              patientid
+              fullname
+              email
+              patientid
+              gender
+              birthday
+            }
+          }
+          appointdateid
+          appointdate
+        }
+      }`
     }
 }
 

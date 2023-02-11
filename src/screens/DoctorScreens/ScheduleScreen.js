@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
+import { SafeAreaView } from 'react-native'
 import Background from '../../components/Background'
-import { Text } from 'react-native-paper'
 import Header from '../../components/Header'
-import Button from '../../components/Button'
+import PaperButton from '../../components/Button'
 import BackButton from '../../components/BackButton'
 import {
     Box,
@@ -15,22 +15,80 @@ import {
     View,
     Spacer,
     Pressable,
+    FlatList,
+    Text
   } from "native-base";
 import { StyleSheet, ImageBackground } from 'react-native'
 import { theme } from '../../core/theme';
 import { DoctorAppointmentContext } from '../../Contexts'
 
+const ListItem = ({appointtime}) => {
+    const {appointtimeid, endtime, starttime, isbooked, patient} = appointtime
+    const BookedInfo = () => {
+        if (isbooked) {
+            return (
+                <>
+                    <Text color='red' bold>
+                            Booked
+                    </Text>
+                    <Text color="coolGray.600" >
+                        <Text bold>Patient Name: </Text> 
+                        {patient.fullname}
+                    </Text>
+                    <Text color="coolGray.600" >
+                    <Text bold>Gender: </Text> 
+                        {patient.gender === 'M' ? "Male" : "Female"}
+                    </Text>
+                    <Text color="coolGray.600" >
+                        <Text bold>Email: </Text> 
+                        {patient.email}
+                    </Text>
+                    <Text color="coolGray.600" >
+                        <Text bold>Birthday: </Text> 
+                        {patient.birthday}
+                    </Text>
+                </>
+            )
+        } else {
+            return (
+                <Text italic color="coolGray.600">Not Booked</Text>
+            )
+        }
+    }
+    return (
+        <Box borderBottomWidth="1" borderColor="muted.800" pl={["0", "4"]} pr={["0", "5"]} py="2">
+            <HStack space={[2, 3]} justifyContent="space-between">
+                <VStack>
+                    {BookedInfo()}
+                </VStack>
+                <Spacer />
+                <VStack>
+                    <Text fontSize="sm" bold color="coolGray.800" alignSelf="flex-start">
+                        {starttime} - {endtime}
+                    </Text>
+    
+                </VStack>
+            </HStack>
+        </Box>
+    )
+}
+
 export default function ScheduleScreen({ navigation }) {
     const {appointdates, addAppointDate} = React.useContext(DoctorAppointmentContext)
 
+    // React.useEffect(() => {
+    //     console.log("appointdates changes")
+    //     console.log(appointdates)
+    // }, [appointdates])
     return (
         <NativeBaseProvider>
-        <Box safeArea flex={1} px={5}  alignItems="center">
+        <Box safeArea flex={1}  mx={5} >
         <BackButton goBack={navigation.goBack} />
         <Header  style={styles.head}>My Appointments</Header>
-        <Button mode='contained' icon='calendar-plus' onPress={()=>navigation.navigate('AddNewScheduleScreen')}> New Schedule</Button>
+        <PaperButton mode='contained' icon='calendar-plus' onPress={()=>navigation.navigate('AddNewScheduleScreen')}> New Schedule</PaperButton>
+        <Heading my={3}>Upcoming</Heading>
         <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
-            {!!appointdates && [...appointdates].reverse().map((appointdate)=>(
+            {appointdates.length >0 && appointdates.map((appointdate)=>(
                 
                 <Box
                     key={appointdate.appointdateid}
@@ -47,12 +105,12 @@ export default function ScheduleScreen({ navigation }) {
                     <VStack space={2} pt={2}>
                         <Header style={styles.header}>{appointdate.appointdate}</Header>
 
-                        <HStack space={2} pt="3" pb="3" pl="6" flex={1} flexWrap={'wrap'}>
-                          {appointdate.appointtimes.map((appointtime)=>(
-                            <Box key={appointtime.appointtimeid}      borderWidth= {1}  borderRadius= {10} alignItems="center"
-                            borderColor= "#560CCE" width="40%" my={2} m={'auto'} p={1}>{appointtime.starttime} - {appointtime.endtime}</Box>
-                          ))}
-                        </HStack>
+                        <VStack space={2} flex={1} flexWrap={'wrap'}>
+                            {appointdate.appointtimes.map((appointtime)=>(
+                                <ListItem key={appointtime.appointtimeid} appointtime={appointtime}></ListItem>
+                            ))}
+                          
+                        </VStack>
                   </VStack>
                 </Box>
             ))}
@@ -93,11 +151,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     head: {
-        paddingTop: '10%',
+        marginTop: '20%',
         fontSize: 30,
         color: theme.colors.primary,
         fontWeight: 'bold',
-        paddingVertical: 12,
+        marginBottom: 10
     },
     paragraph: {
         fontSize: 15,

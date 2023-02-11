@@ -14,5 +14,5 @@ export { default as AppointmentHistoryScreen } from './PatientScreens/Appointmen
 export { default as DoctorMainScreen } from './DoctorScreens/DoctorMainScreen'
 export { default as ScheduleScreen } from './DoctorScreens/ScheduleScreen'
 export { default as AddNewScheduleScreen } from './DoctorScreens/AddNewScheduleScreen'
-export { default as MyAppointmentScreen } from './DoctorScreens/MyAppointmentScreen'
+// export { default as MyAppointmentScreen } from './ArchivedScreens/MyAppointmentScreen'
 export { default as DoctorProfileScreen} from './DoctorScreens/DoctorProfileScreen'

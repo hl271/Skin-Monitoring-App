@@ -8,7 +8,6 @@ import {
   DoctorMainScreen,
   ScheduleScreen,
   AddNewScheduleScreen,
-  MyAppointmentScreen,
   DoctorProfileScreen
 } from './screens'
 
@@ -18,6 +17,10 @@ import { doctorReducer, doctorAppointmentReducer } from './Reducers'
 import { createStackNavigator } from '@react-navigation/stack'
 import ACTION_TYPES from './ActionTypes'
 import graphqlReq from './helpers/graphqlReq'
+import graphqlQueries from './helpers/graphqlQueries'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 const DoctorStack = createStackNavigator()
 
@@ -63,7 +66,7 @@ export default function DoctorNavigator() {
   /* (doctorstacknav [=> doctormainscreen ]
   => doctorstacknav useEffect = change doctorcontext 
   => rerender doctorstacknav[, doctormainscreen]) => ...infinite loop
-  The Problem might be: the doctorcontext, due to if conditions, 
+  The Problem is: the doctorcontext, due to if conditions, 
   change in every re-render of this component without a break condition
   
   if (authContext.authState.signedIn) {
@@ -114,27 +117,11 @@ export default function DoctorNavigator() {
     const fetchAppointments = async () => {
       try {
           console.log("Fetching appointdates...")
-          const query = `query MyQuery2 {
-            appointdate {
-              appointtimes {
-                appointtimeid
-                endtime
-                isbooked
-                patientid
-                starttime
-                patient {
-                  fullname
-                  email
-                  patientid
-                  gender
-                  birthday
-                }
-              }
-              appointdateid
-              appointdate
-            }
-          }`
-          let hasuraRes = await graphqlReq(query, {}, authState.userToken)
+          const query = graphqlQueries.doctorApp.FetchUpcomingAppointDates
+          const variables = {
+            _datemin: dayjs().format('YYYY-MM-DD')
+          }
+          let hasuraRes = await graphqlReq(query, variables, authState.userToken)
           // console.log(hasuraRes)
           const appointResults = hasuraRes.data.appointdate
           console.log("Fetched appointdates")
@@ -176,7 +163,6 @@ export default function DoctorNavigator() {
           <DoctorStack.Screen name="DoctorProfileScreen" component={DoctorProfileScreen} />
           <DoctorStack.Screen name="ScheduleScreen" component={ScheduleScreen} />
           <DoctorStack.Screen name="AddNewScheduleScreen" component={AddNewScheduleScreen} />
-          <DoctorStack.Screen name="MyAppointmentScreen" component={MyAppointmentScreen} />
           
         </DoctorStack.Navigator>
 

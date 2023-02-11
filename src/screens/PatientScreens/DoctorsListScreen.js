@@ -142,6 +142,7 @@ export default function DoctorsListScreen({ navigation }) {
         }
     }
     
+    // !Reset dropdown: https://github.com/AdelRedaa97/react-native-select-dropdown/pull/1#issuecomment-818307624
     const dropdownRef = React.useRef({})
 
     return (
