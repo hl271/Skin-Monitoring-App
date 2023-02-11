@@ -14,8 +14,14 @@ import { AuthContext, FirebaseContext, PatientContext,
   RecordContext, PatientAppointmentContext, DoctorListContext } from './Contexts'
 import { patientReducer, recordReducer, patientAppointmentReducer, doctorListReducer } from './Reducers'
 import { createStackNavigator } from '@react-navigation/stack'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
+
+
 import ACTION_TYPES from './ActionTypes'
 import graphqlReq from './helpers/graphqlReq'
+import graphqlQueries from './helpers/graphqlQueries'
 
 const PatientStack = createStackNavigator()
 
@@ -32,7 +38,10 @@ export default function PatientNavigator()  {
   })
 
   const [records, recordsDispatch] = React.useReducer(recordReducer, [])
-  const [appointments, appointmentsDispatch] = React.useReducer(patientAppointmentReducer, [])
+  const [appointments, appointmentsDispatch] = React.useReducer(patientAppointmentReducer, {
+    upcoming: [],
+    passed: []
+  })
   const [doctorList, doctorListDispatch] = React.useReducer(doctorListReducer, [])
 
   const patientContext = React.useMemo(() => ({
@@ -55,7 +64,10 @@ export default function PatientNavigator()  {
   }), [records])
 
   const appointmentContext = React.useMemo(() => ({
-    appointments
+    appointments,
+    addUpcomingAppointment: (appointment => {
+      appointmentsDispatch({type: ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINT_UPCOMING, ...appointment})
+    })
   }), [appointments])
 
   const doctorListContext = React.useMemo(() => ({
@@ -70,7 +82,6 @@ export default function PatientNavigator()  {
 
   
   React.useEffect(() => {
-    // console.log(HASURA_GRAPHQL_ENDPOINT)
     const fetchUser = async () => {
       try {
           console.log("Fetching patient info...")
@@ -104,20 +115,7 @@ export default function PatientNavigator()  {
     const fetchRecords = async () => {
       try {
           console.log("Fetching records...")
-          const query = `query MyQuery {
-              record(order_by: {recordtime: asc}) {
-                accuracy
-                disease {
-                  diseaseid
-                  diseasename
-                  relatedinfo
-                }
-                patientid
-                pictureurl
-                recordid
-                recordtime
-              }
-            }`
+          const query = graphqlQueries.patientApp.FetchRecords
           
           let hasuraRes = await graphqlReq(query, {}, authState.userToken)
           // console.log(hasuraRes)
@@ -141,20 +139,7 @@ export default function PatientNavigator()  {
     const fetchDoctors = async () => {
       try {
           console.log("Fetching doctors...")
-          const query = `query MyQuery {
-            doctor(order_by: {fullname: asc}) {
-              birthday
-              doctorid
-              email
-              fullname
-              gender
-              isapproved
-              phonenumber
-              profilepicture
-              workaddress
-              about
-            }
-          }`
+          const query = graphqlQueries.patientApp.FetchDoctorList
           let hasuraRes = await graphqlReq(query, {}, authState.userToken)
           const doctorResults = hasuraRes.data.doctor
           console.log("Fetched doctors list")
@@ -171,6 +156,41 @@ export default function PatientNavigator()  {
     }
     if (doctorList.length == 0) fetchDoctors()
   }, [doctorList])
+
+  React.useEffect(() => {
+    const fetchUpcomingAppointments = async () => {
+      try {
+        console.log("Fetching appointments for patient")
+        const query = graphqlQueries.patientApp.FetchUpcomingAppointments
+        const variables = {
+          patientid: authState.userId,
+          _datemin: dayjs().format('YYYY-MM-DD'),
+          _timemin: dayjs().format('HH:mm')
+        }
+        // console.log(variables)
+        const hasuraRes = await graphqlReq(query, variables, authState.userToken)
+        const appointmentRes = hasuraRes.data.patient_by_pk.appointtimes
+        if (appointmentRes.length > 0) {
+          console.log("Found booked appointments of this patient")
+          appointmentRes.forEach(appointtime => {
+            const {appointtimeid, starttime, endtime, appointdate} = appointtime
+            const appointment = {
+              appointtimeid,
+              starttime,
+              endtime, 
+              appointdate: appointdate.appointdate,
+              doctorid: appointdate.doctor.doctorid
+            }
+            appointmentContext.addUpcomingAppointment(appointment)
+          })
+        }
+      }catch(error) {
+        console.log("Error occured while fetching upcoming appointments")
+        console.log(error.message)
+      }
+    }
+    if (appointments.upcoming.length === 0) fetchUpcomingAppointments()
+  }, [appointments])
   return (
     <PatientContext.Provider value={patientContext}>
       <RecordContext.Provider  value={recordContext}>

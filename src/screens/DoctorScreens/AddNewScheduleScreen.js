@@ -23,7 +23,6 @@ import graphqlReq from '../../helpers/graphqlReq'
 import fixedTimeRanges from '../../helpers/fixedTimeRanges'
 import { AuthContext, DoctorAppointmentContext } from '../../Contexts'
 
-// var moment = require('moment'); 
 dayjs.extend(customParseFormat)
 
 import {

@@ -33,9 +33,10 @@ export default function DetectionHistoryScreen({ navigation }) {
     //on infinite loops, because each time records change, fetch will be triggered again
     return (
       <NativeBaseProvider>
-      <Box safeArea flex={1}  alignItems="center">
+      <Box safeArea mx={5} flex={1}  alignItems="center">
       <BackButton goBack={navigation.goBack} />
       <Header  style={styles.head}>List of Detections</Header>
+      <Button mode='contained' icon='camera' onPress={()=>navigation.navigate('CameraScreen')}> Take skin's photo</Button>
       <ScrollView safeArea flex={1} showsVerticalScrollIndicator={false}>
           {[...records].reverse().map((record)=>(
                 

@@ -114,12 +114,33 @@ export function recordReducer(prevState, action) {
 
 export function patientAppointmentReducer(prevState, action) {
     switch (action.type) {
-        case ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINTMENT: {
-            return [...prevState, {
-                scheduledate: action.scheduledate,
-                scheduletime: action.scheduletime,
-                doctor: action.doctor
-            }]
+        case ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINT_UPCOMING: {
+            return {
+                passed: {...prevState.passed},
+                upcoming: [
+                    ...prevState.upcoming, {
+                        appointtimeid: action.appointtimeid,
+                        appointdate: action.appointdate,
+                        starttime: action.starttime,
+                        endtime: action.endtime,
+                        doctorid: action.doctorid,
+                    }
+                ]
+            }
+        }
+        case ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINT_PASSED: {
+            return {
+                upcoming: {...prevState.upcoming},
+                passed: [
+                    ...prevState.passed, {
+                        appointtimeid: action.appointtimeid,
+                        appointdate: action.appointdate,
+                        starttime: action.starttime,
+                        endtime: action.endtime,
+                        doctorid: action.doctorid,
+                    }
+                ]
+            }
         }
     }
 }
@@ -163,17 +184,29 @@ export function doctorAppointmentReducer(prevState, action) {
 export function doctorListReducer(prevState, action) {
     switch(action.type) {
         case ACTION_TYPES.DOCTOR_LIST.FETCH_DOCTOR: {
-            return [...prevState, {
-                doctorid: action.doctorid,
-                fullname: action.fullname,
-                workaddress: action.workaddress,
-                about: action.about,
-                profilepicture: action.profilepicture,
-                phonenumber: action.phonenumber,
-                email: action.email,
-                isapproved: action.isapproved,
-                schedules: null
-            }]
+            return {
+                ...prevState,
+                [action.doctorid]: {
+                    fullname: action.fullname,
+                    workaddress: action.workaddress,
+                    about: action.about,
+                    profilepicture: action.profilepicture,
+                    phonenumber: action.phonenumber,
+                    email: action.email,
+                    isapproved: action.isapproved
+                }
+            }
+            // return [...prevState, {
+            //     doctorid: action.doctorid,
+            //     fullname: action.fullname,
+            //     workaddress: action.workaddress,
+            //     about: action.about,
+            //     profilepicture: action.profilepicture,
+            //     phonenumber: action.phonenumber,
+            //     email: action.email,
+            //     isapproved: action.isapproved,
+            //     schedules: null
+            // }]
         }
         case ACTION_TYPES.DOCTOR_LIST.FETCH_DOCTOR_SCHEDULE: {
             return prevState.map(doctor => {
