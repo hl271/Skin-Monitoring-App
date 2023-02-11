@@ -1,22 +1,22 @@
 const graphqlQueries = {
     patientApp: {
-        FetchAvailSchedulesOfDoctors: `query FetchAvailSchedulesOfDoctors($doctorid: String!, $_datemin: date!, $_timemin: time!) {
-            doctor_by_pk(doctorid: $doctorid) {
-              appointdates {
-                appointtimes(where: {isbooked: {_eq: false}, appointdate: {appointdate: {_gte: $_datemin}}, starttime: {_gt: $_timemin}}) {
-                  appointtimeid
-                  endtime
-                  starttime
-                }
-                appointdate
-                appointdateid
+        FetchAvailSchedulesOfDoctors: `query FetchAvailSchedulesOfDoctors($doctorid: String!, $_datemin: date!) {
+          doctor_by_pk(doctorid: $doctorid) {
+            appointdates(where: {appointdate: {_gt: $_datemin}}, order_by: {appointdate: asc}) {
+              appointtimes(where: {isbooked: {_eq: false}}) {
+                appointtimeid
+                endtime
+                starttime
               }
+              appointdate
+              appointdateid
             }
-          }`,
-        FetchUpcomingAppointments: `query FetchUpcomingAppointments($patientid: String!, $_datemin: date!, $_timemin: time!) {
+          }
+        }`,
+        FetchUpcomingAppointments: `query FetchUpcomingAppointments($patientid: String!, $_datemin: date!) {
             patient_by_pk(patientid: $patientid) {
               appointtimes(order_by: {appointdate: {appointdate: asc}, starttime: asc}, 
-                where: {appointdate: {appointdate: {_gte: $_datemin}}, starttime: {_gt: $_timemin}}) {
+                where: {appointdate: {appointdate: {_gte: $_datemin}} }) {
                 appointtimeid
                 endtime
                 starttime
@@ -72,7 +72,22 @@ const graphqlQueries = {
               workaddress
               about
             }
-          }`
+          }`,
+        BookAppointment: `mutation BookAppointment($appointtimeid: bigint!, $patientid: String!) {
+          update_appointtime_by_pk(pk_columns: {appointtimeid: $appointtimeid}, _set: {isbooked: true, patientid: $patientid}) {
+            appointtimeid
+            endtime
+            starttime
+            appointdate {
+              appointdate
+              appointdateid
+            }
+          }
+        }
+        `
+    },
+    doctorApp: {
+      
     }
 }
 

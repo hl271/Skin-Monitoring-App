@@ -56,7 +56,7 @@ export default function AddNewScheduleScreen({ navigation }) {
   const {authState} = React.useContext(AuthContext)
   const {appointdates, addAppointDate, addAppointTime} = React.useContext(DoctorAppointmentContext)
 
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(dayjs().add(1, 'day').toDate());
   const [selectedTimeIds, setSelectTimeIds] = useState([]);
   const [currentAppointDate, setCurrentAppointDate] = useState({
     // If appointdateid is null, currentAppointDate is not in database
@@ -169,8 +169,8 @@ export default function AddNewScheduleScreen({ navigation }) {
         value: date,
         mode: 'date',
         onChange: onDateSelected,
-        maximumDate: dayjs().add(6, 'day').toDate(),
-        minimumDate: dayjs().toDate()
+        maximumDate: dayjs().add(7, 'day').toDate(),
+        minimumDate: dayjs().add(1, 'day').toDate()
     })
   };
 

@@ -116,13 +116,13 @@ export function patientAppointmentReducer(prevState, action) {
     switch (action.type) {
         case ACTION_TYPES.PATIENT_APPOINTMENT.ADD_APPOINT_UPCOMING: {
             return {
-                passed: {...prevState.passed},
+                passed: [...prevState.passed],
                 upcoming: [
                     ...prevState.upcoming, {
                         appointtimeid: action.appointtimeid,
                         appointdate: action.appointdate,
-                        starttime: action.starttime,
-                        endtime: action.endtime,
+                        starttime: dayjs(action.starttime, 'HH:mm').format('HH:mm'),
+                        endtime: dayjs(action.endtime, 'HH:mm').format('HH:mm'),
                         doctorid: action.doctorid,
                     }
                 ]

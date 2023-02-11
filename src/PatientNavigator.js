@@ -164,8 +164,7 @@ export default function PatientNavigator()  {
         const query = graphqlQueries.patientApp.FetchUpcomingAppointments
         const variables = {
           patientid: authState.userId,
-          _datemin: dayjs().format('YYYY-MM-DD'),
-          _timemin: dayjs().format('HH:mm')
+          _datemin: dayjs().format('YYYY-MM-DD')
         }
         // console.log(variables)
         const hasuraRes = await graphqlReq(query, variables, authState.userToken)

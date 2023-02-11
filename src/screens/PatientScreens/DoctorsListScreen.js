@@ -21,7 +21,7 @@ import Paragraph from '../../components/Paragraph';
 import Header from '../../components/Header';
 import { theme } from '../../core/theme';
 import BackButton from '../../components/BackButton';
-import { AuthContext, DoctorListContext } from '../../Contexts';
+import { AuthContext, DoctorListContext, PatientAppointmentContext } from '../../Contexts';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import graphqlReq from '../../helpers/graphqlReq';
@@ -34,6 +34,7 @@ dayjs.extend(customParseFormat)
 export default function DoctorsListScreen({ navigation }) {
     const {authState} = React.useContext(AuthContext)
     const {doctorList} = React.useContext(DoctorListContext)
+    const {addUpcomingAppointment} = React.useContext(PatientAppointmentContext)
 
     const placeholderURL = 'https://via.placeholder.com/200.jpg'
 
@@ -51,9 +52,9 @@ export default function DoctorsListScreen({ navigation }) {
                 const query = graphqlQueries.patientApp.FetchAvailSchedulesOfDoctors
                 const variables = {
                     doctorid: currentDoctorId,
-                    _datemin: dayjs().format('YYYY-MM-DD'),
-                    _timemin: dayjs().format('HH:mm')
+                    _datemin: dayjs().format('YYYY-MM-DD')
                 }
+                console.log(variables)
                 const hasuraRes = await graphqlReq(query, variables, authState.userToken)
                 const availSchedulesRes = hasuraRes.data.doctor_by_pk.appointdates
                 if (availSchedulesRes.length > 0) {
@@ -66,26 +67,29 @@ export default function DoctorsListScreen({ navigation }) {
                             appointdate,
                             appointtimes: [...appointtimes]
                         }
-                        setFetchDoctorSchedules({
-                            ...fetchedDoctorSchedules, 
-                            ...updatedState
-                        })
                     })
-                } else {
-                    setFetchDoctorSchedules({})
-                }
+                    setFetchDoctorSchedules({
+                        ...updatedState
+                    })
+                } 
             } catch (error) {
                 console.log("Error occured while fetching doctor schedules")
                 console.log(error.message)
             }
         }
         if (!!currentDoctorId) {
-            console.log("CurrentDoctorId is non null")
+            // console.log("CurrentDoctorId is non null")
+            setFetchDoctorSchedules({})
             setChosenDateId(null)
             setChosenTimeId(null)
             fetchAvailDoctorSchedules()
         }
     }, [currentDoctorId])
+
+    // React.useEffect(() => {
+    //     console.log("fetched schedules update")
+    //     console.log(fetchedDoctorSchedules)
+    // }, [fetchedDoctorSchedules])
 
     React.useEffect(() => {
         // console.log("Chosen date id:", chosenDateId)
@@ -108,6 +112,34 @@ export default function DoctorsListScreen({ navigation }) {
         setChosenDateId(null)
         setChosenTimeId(null)
         setShowModal(false)
+    }
+
+    const onSubmitPressed = async () => {
+        try {
+            console.log("Booking appointment for patient")
+            const query = graphqlQueries.patientApp.BookAppointment
+            const variables = {
+                appointtimeid: chosenTimeId,
+                patientid: authState.userId
+            }
+            const hasuraRes = await graphqlReq(query, variables, authState.userToken)
+            const bookedRes = hasuraRes.data.update_appointtime_by_pk
+            const {appointtimeid, endtime, starttime, appointdate} = bookedRes
+            addUpcomingAppointment({
+                appointtimeid,
+                starttime,
+                endtime,
+                appointdate: appointdate.appointdate,
+                doctorid: currentDoctorId
+            })
+            console.log("Booked appointment successfully")
+            setShowModal(false)
+            navigation.navigate('AppointmentHistoryScreen')
+            
+        } catch(error) {
+            console.log("Error occured while booking appointment")
+            console.log(error.message)
+        }
     }
     
     const dropdownRef = React.useRef({})
@@ -249,9 +281,7 @@ export default function DoctorsListScreen({ navigation }) {
                         }}>
                             Cancel
                         </Button>
-                        <Button onPress={() => {
-                            setShowModal(false);
-                            }}
+                        <Button onPress={onSubmitPressed}
                         >
                             Request Appointment
                         </Button>
