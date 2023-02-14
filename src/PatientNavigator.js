@@ -5,7 +5,6 @@ import {
   ProfileScreen,
   ResultScreen,
   DoctorsListScreen,
-  AppointmentDetailScreen,
   DetectionHistoryScreen,
   AppointmentHistoryScreen,
 } from './screens'
@@ -206,7 +205,6 @@ export default function PatientNavigator()  {
               <PatientStack.Screen name="ProfileScreen" component={ProfileScreen} />
               <PatientStack.Screen name="ResultScreen" component={ResultScreen} />
               <PatientStack.Screen name="DoctorsListScreen" component={DoctorsListScreen} />
-              <PatientStack.Screen name="AppointmentDetailScreen" component={AppointmentDetailScreen} />
               <PatientStack.Screen name="DetectionHistoryScreen" component={DetectionHistoryScreen} />
               <PatientStack.Screen name="AppointmentHistoryScreen" component={AppointmentHistoryScreen} />
             </PatientStack.Navigator>

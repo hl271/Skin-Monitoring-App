@@ -17,8 +17,6 @@ import {AuthContext, FirebaseContext} from '../Contexts'
 
 // import app from '../helpers/firebase'
 import {getAuth, createUserWithEmailAndPassword, deleteUser} from 'firebase/auth';
-import {getDatabase, ref, onValue} from 'firebase/database';
-// import { onAuthStateChanged } from 'firebase/auth'
 
 // const auth = getAuth(app)
 // const database = getDatabase(app)
@@ -116,7 +114,7 @@ export default function RegisterScreen({ navigation }) {
       if (hasuraRes["errors"]) throw Error("Error from GraphQL Server")
       // console.log(hasuraRes)
       
-      authContext.signIn(userRole, userId, userToken, userEmail, userFullName)    
+      authContext.signIn(userRole, userId, newToken, userEmail, userFullName)    
     } catch (error) {
       console.log("Error occured while register")
       if (error.code && error.code == "auth/email-already-in-use") {

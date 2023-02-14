@@ -17,12 +17,10 @@ import ACTION_TYPES from './src/ActionTypes'
 
 import app from './src/helpers/firebase'
 import {getAuth, onIdTokenChanged} from 'firebase/auth';
-import {getDatabase, ref, onValue} from 'firebase/database';
 
 const auth = getAuth(app)
-const database = getDatabase(app)
 
-import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT, AUTH_API} from "@env"
+import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 const Stack = createStackNavigator()
 
@@ -111,16 +109,16 @@ export default function App() {
       }
     });
   }, [])
-  React.useEffect(() => {
-    return auth.onIdTokenChanged( async (user) => {
-      console.log("Id Token changed")
-      if (user && authState.signedIn) {
-        const userToken = await user.getIdToken()
-        console.log("token refreshed")
-        authContext.refreshToken(userToken)
-      }
-    })
-  }, [])
+  // React.useEffect(() => {
+  //   return auth.onIdTokenChanged( async (user) => {
+  //     console.log("Id Token changed")
+  //     if (user && authState.signedIn) {
+  //       const userToken = await user.getIdToken()
+  //       console.log("token refreshed")
+  //       authContext.refreshToken(userToken)
+  //     }
+  //   })
+  // }, [])
 
   const authContext = React.useMemo(
     () => ({
@@ -168,7 +166,7 @@ export default function App() {
 
   return (
     <Provider theme={theme}>      
-        <FirebaseContext.Provider value={{app, auth, database}}>
+        <FirebaseContext.Provider value={{app, auth}}>
           <AuthContext.Provider value={authContext}>
 
             <NavigationContainer>

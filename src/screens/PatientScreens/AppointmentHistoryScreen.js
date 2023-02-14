@@ -23,10 +23,12 @@ import PaperButton from '../../components/Button';
 import { theme } from '../../core/theme';
 import { AuthContext, PatientAppointmentContext, DoctorListContext } from '../../Contexts';
 
+const placeholderURL = 'https://via.placeholder.com/50.jpg'
+
 const ListItem = ({appointment, doctor, onPress}) => (
     <Pressable onPress={onPress} borderBottomWidth="1" borderColor="muted.800" pl={["0", "4"]} pr={["0", "5"]} py="2">
         <HStack space={[2, 3]} justifyContent="space-between">
-            <Avatar size="48px" source={{ uri: doctor.profilepicture }} />
+            <Avatar size="48px" source={{ uri: !!doctor.profilepicture ? doctor.profilepicture : placeholderURL }} />
             <VStack>
                 <Text color="coolGray.800" bold>
                         {doctor.fullname}

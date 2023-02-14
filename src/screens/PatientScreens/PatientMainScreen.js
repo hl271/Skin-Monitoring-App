@@ -8,7 +8,6 @@ import BackButton from '../../components/BackButton'
 import { signOut } from 'firebase/auth'
 
 import { AuthContext, FirebaseContext, PatientContext } from '../../Contexts'
-import { patientReducer } from '../../Reducers'
 
 export default function PatientMainScreen({ navigation }) {
   const authContext = React.useContext(AuthContext)

@@ -6,6 +6,7 @@
     "start:development": "NODE_ENV=development npx expo start",
     "start:development_clear": "NODE_ENV=development npx expo start --clear",
     "start:test": "NODE_ENV=test npx expo start",
+    "start:test_clear": "NODE_ENV=test npx expo start --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
