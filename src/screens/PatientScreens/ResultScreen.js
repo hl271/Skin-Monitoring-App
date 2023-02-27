@@ -20,6 +20,10 @@ import Button from '../../components/Button';
 import { theme } from '../../core/theme';
 import { acc } from 'react-native-reanimated';
 
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
+
 export default function ResultScreen({ route, navigation }) {
     const { record }=route.params;
     const {recordid, pictureurl, accuracy, disease, patientid, recordtime}=record;
@@ -38,8 +42,8 @@ export default function ResultScreen({ route, navigation }) {
                                     source={{ uri: pictureurl }}
                                 />  
                                 <VStack space={2} my={5}>
-                                    <Header style={styles.header}>Date/Time</Header>
-                                    <Paragraph style={styles.paragraph}>{recordtime}</Paragraph>
+                                    <Header style={styles.header}>Record Time</Header>
+                                    <Paragraph style={styles.paragraph}>{dayjs(recordtime).format('HH:mm DD-MM-YYYY')}</Paragraph>
                                     <Header style={styles.header}>Result</Header>
                                     <Paragraph style={styles.paragraph}>{disease.diseasename}</Paragraph>
                                     <Header style={styles.header}>Accuracy</Header>
@@ -47,7 +51,7 @@ export default function ResultScreen({ route, navigation }) {
                                 </VStack>
                                 
                             </HStack>
-                            
+                            <Heading size={'md'}>More info</Heading>
                             <Paragraph style={styles.paragraph}>
                                 {disease.relatedinfo}
                             </Paragraph>

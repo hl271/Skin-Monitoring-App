@@ -22,6 +22,10 @@ import { theme } from '../../core/theme';
 import detections from '../../data/Detections';
 import { RecordContext , AuthContext} from '../../Contexts';
 
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
+
 export default function DetectionHistoryScreen({ navigation }) {
     const {records, addRecord} = React.useContext(RecordContext)
     const {authState} = React.useContext(AuthContext)
@@ -31,6 +35,7 @@ export default function DetectionHistoryScreen({ navigation }) {
         
     }, []) // If set dependencies as records => the fetch function will run
     //on infinite loops, because each time records change, fetch will be triggered again
+    
     return (
       <NativeBaseProvider>
       <Box safeArea mx={5} flex={1}  alignItems="center">
@@ -61,8 +66,8 @@ export default function DetectionHistoryScreen({ navigation }) {
                                     source={{ uri: record.pictureurl }}
                                 />  
                                 <VStack space={2} my={5}>
-                                    <Header style={styles.header}>Date/Time</Header>
-                                    <Paragraph style={styles.paragraph}>{record.recordtime}</Paragraph>
+                                    <Header style={styles.header}>Record Time</Header>
+                                    <Paragraph style={styles.paragraph}>{dayjs(record.recordtime).format('HH:mm DD-MM-YYYY')}</Paragraph>
                                     <Header style={styles.header}>Result</Header>
                                     <Paragraph style={styles.paragraph}>{record.disease.diseasename}</Paragraph>
                                     <Header style={styles.header}>Accuracy</Header>

@@ -9,15 +9,24 @@ import Slider from '@react-native-community/slider';
 import SelectDropdown from 'react-native-select-dropdown';
 import uuid from 'react-uuid'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 import app from '../../helpers/firebase'
 import { getAuth } from 'firebase/auth';
 import {getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes} from 'firebase/storage'
 
 import { AuthContext, RecordContext } from '../../Contexts';
-import {AI_API, HASURA_GRAPHQL_ENDPOINT} from '@env'
+import {AI_API} from '@env'
+import graphqlReq from '../../helpers/graphqlReq';
+import graphqlQueries from '../../helpers/graphqlQueries';
+
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 const storage = getStorage(app)
+
+
 
 export default function CameraScreen({ navigation }) {
   // console.log(AI_API)
@@ -29,24 +38,19 @@ export default function CameraScreen({ navigation }) {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const cameraRef = useRef(null);
-  const [currentDate, setCurrentDate] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const [sex, setSex] = useState("male")
   const bodyLocations = ['back', 'lower extremity', 'upper extremity', 'abdomen', 'face', 'chest', 'foot', 'unknown', 'neck', 'scalp', 'hand', 'ear', 'genital', 'acral']
   const [bodyLoc, setBodyLoc] = useState(null)
   const [age, setAge] = useState(20)
 
+  const [isLoading, setLoading] = useState(false)
+
+
   useEffect(() => {
-    var date = new Date().getDate(); //Current Date
-    var month = new Date().getMonth() + 1; //Current Month
-    var year = new Date().getFullYear(); //Current Year
-    var hours = new Date().getHours(); //Current Hours
-    var min = new Date().getMinutes(); //Current Minutes
-    setCurrentDate(
-      date + '/' + month + '/' + year 
-      + ' ' + hours + ':' + min
-    );
-  }, []);
+    console.log("Current Date:", currentDate)
+  }, [currentDate]);
 
   useEffect(() => {
     (async () => {
@@ -71,10 +75,7 @@ export default function CameraScreen({ navigation }) {
   const savePicture = async () => {
     if (imageURI) {
       try {
-        // const asset = await MediaLibrary.createAssetAsync(image); 
-        //Convert imageURI to blob 
-        // const userToken = getAuth().currentUser.getIdToken()
-        console.log(currentDate)
+        setLoading(true)
         //Compress image
         const manipImgResult = await manipulateAsync(
           imageURI,
@@ -132,34 +133,13 @@ export default function CameraScreen({ navigation }) {
         console.log("Highest result: ", highestResult)
         console.log("Highest Acc:", highestAcc)
         //Fetch Disease Info in database
-        const query = `query MyQuery($name: String!) {
-          disease(where: {diseasename: {_eq: $name}}) {
-            diseaseid
-            diseasename
-            relatedinfo
-          }
+        const query = graphqlQueries.patientApp.FetchDisease
+        
+        const variables = {
+          name: highestResult
         }
-        `
-        const graphqlReq = {
-          "query": query,
-          "variables": {
-            "name": highestResult
-          }
-        }
-        console.log(graphqlReq)
-        let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-          method: 'POST',
-          headers: {
-            'content-type' : 'application/json', 
-            'Authorization': "Bearer " + authState.userToken
-          },
-          body: JSON.stringify(graphqlReq)
-        })
-        hasuraRes = await hasuraRes.json()
-        if (hasuraRes["errors"]) {
-          console.log(hasuraRes)
-          throw Error("Error from GraphQL Server")
-        }
+        // console.log(graphqlReq)
+        let hasuraRes = await graphqlReq(query, variables, authState.userToken)
         if (hasuraRes.data.disease.length == 0) throw Error("No disease found")
         console.log("Found disease!")
         console.log(hasuraRes.data.disease[0] )
@@ -208,35 +188,16 @@ export default function CameraScreen({ navigation }) {
               console.log("File available at", downloadURL)
   
               // Upload new record to database
-              const uploadQuery = `mutation MyMutation($accuracy: numeric!, $diseaseid: Int!, $patientid: String!, $recordtime: timestamp!, $pictureurl: String!) {
-                insert_record_one(object: {accuracy: $accuracy, diseaseid: $diseaseid, patientid: $patientid, pictureurl: $pictureurl, recordtime: $recordtime}) {
-                  recordid
-                  recordtime
-                }
+              const query = graphqlQueries.patientApp.InsertNewRecord
+              
+              const variables = {
+                diseaseid,
+                accuracy: highestAcc,
+                patientid: authState.userId,
+                pictureurl: downloadURL,
+                recordtime: currentDate
               }
-              `
-              const graphQLReqUpload = {
-                "query": uploadQuery,
-                "variables": {
-                  diseaseid,
-                  accuracy: highestAcc,
-                  patientid: authState.userId,
-                  pictureurl: downloadURL,
-                  recordtime: currentDate
-                }
-              }
-              let hasuraResUpload = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
-                method: 'POST',
-                headers: {
-                  'content-type' : 'application/json', 
-                  'Authorization': "Bearer " + authState.userToken
-                },
-                body: JSON.stringify(graphQLReqUpload)
-              })
-              hasuraResUpload = await hasuraResUpload.json()
-              if (hasuraResUpload["errors"]) {
-                console.log(hasuraResUpload)
-              }
+              let hasuraResUpload = await graphqlReq(query, variables, authState.userToken)
               if (hasuraResUpload.data.insert_record_one == null) throw Error("Failed to insert record")
               console.log("Insert record success")
               console.log(hasuraResUpload)
@@ -258,13 +219,15 @@ export default function CameraScreen({ navigation }) {
             } catch(err) {
               console.log("error occured while insert new record")
               console.log(err.message)
+            } finally {
+              setLoading(false)
             }
           })
         })
       } catch (error) {
         console.log("Error occured while uploading image")
         console.log(error.message);
-      }
+      } 
     }
   };
 
@@ -272,9 +235,11 @@ export default function CameraScreen({ navigation }) {
     return <Text>No access to camera</Text>;
   }
 
+
   return (
     
       <View style={styles.container}>
+        <Spinner overlayColor='#f1f1f1' visible={isLoading} textContent="Saving Detection..."/>
         {!imageURI ? (
           <Camera
             style={styles.camera}
@@ -385,7 +350,7 @@ export default function CameraScreen({ navigation }) {
                 onPress={() => setImage(null)}
                 icon="retweet"
               />
-              <Buttone title="Save" onPress={savePicture} icon="check" />
+              <Buttone title="Save" onPress={savePicture} icon="check"/>
             </View>
           ) : (
             <Buttone title="Take a picture" onPress={takePicture} icon="camera" />
@@ -408,16 +373,13 @@ const styles = StyleSheet.create({
     flex: 0.5,
   },
   button: {
-    height: 40,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    color: '#f1f1f1',
+    fontSize: 20
   },
   text: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#E9730F',
+    color: '#f1f1f1',
     marginLeft: 10,
   },
   camera: {

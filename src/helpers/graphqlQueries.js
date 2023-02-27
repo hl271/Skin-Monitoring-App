@@ -84,6 +84,21 @@ const graphqlQueries = {
             }
           }
         }
+        `,
+        FetchDisease: `query MyQuery($name: String!) {
+          disease(where: {diseasename: {_eq: $name}}) {
+            diseaseid
+            diseasename
+            relatedinfo
+          }
+        }
+        `,
+        InsertNewRecord: `mutation MyMutation($accuracy: numeric!, $diseaseid: Int!, $patientid: String!, $recordtime: timestamp!, $pictureurl: String!) {
+          insert_record_one(object: {accuracy: $accuracy, diseaseid: $diseaseid, patientid: $patientid, pictureurl: $pictureurl, recordtime: $recordtime}) {
+            recordid
+            recordtime
+          }
+        }
         `
     },
     doctorApp: {

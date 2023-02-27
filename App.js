@@ -1,4 +1,5 @@
-import React from 'react'
+import React, {useState} from 'react'
+import { View } from 'react-native'
 import { Provider } from 'react-native-paper'
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
@@ -14,6 +15,7 @@ import DoctorNavigator from './src/DoctorNavigator'
 import {authReducer} from './src/Reducers'
 import {AuthContext, FirebaseContext} from './src/Contexts'
 import ACTION_TYPES from './src/ActionTypes'
+import * as SplashScreen from 'expo-splash-screen';
 
 import app from './src/helpers/firebase'
 import {getAuth, onIdTokenChanged} from 'firebase/auth';
@@ -23,6 +25,9 @@ const auth = getAuth(app)
 import {X_HASURA_ADMIN_SECRET, HASURA_GRAPHQL_ENDPOINT} from "@env"
 
 const Stack = createStackNavigator()
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   // const authContext = React.useContext(AuthContext)
@@ -38,6 +43,8 @@ export default function App() {
     signedIn: false,
     isSigningIn: false
   })
+  const [appIsReady, setAppIsReady] = useState(false);
+
 
   React.useEffect(() => {
     return auth.onAuthStateChanged(async user => {
@@ -106,6 +113,10 @@ export default function App() {
       } catch (error) {
         console.log("Error occured while auth state change")
         console.log(error)
+      } finally {
+        console.log("Finally")
+        // Tell the application to render
+        setAppIsReady(true);
       }
     });
   }, [])
@@ -162,6 +173,25 @@ export default function App() {
       <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
       </>
     )
+  }
+  React.useEffect(() => {
+    const setAppReady = async () => {
+
+      // This tells the splash screen to hide immediately! If we call this after
+      // `setAppIsReady`, then we may see a blank screen while the app is
+      // loading its initial state and rendering its first pixels. So instead,
+      // we hide the splash screen once we know the root view has already
+      // performed layout.
+      await SplashScreen.hideAsync();
+    }
+    if (appIsReady) {
+      console.log("App is ready!")
+      setAppReady()
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
   }
 
   return (

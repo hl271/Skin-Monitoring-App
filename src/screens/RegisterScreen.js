@@ -100,7 +100,6 @@ export default function RegisterScreen({ navigation }) {
           [`${userRole}id`]: userId
         } 
       }
-      console.log(`${HASURA_GRAPHQL_ENDPOINT}`)
       // console.log(graphqlReq)
       let hasuraRes = await fetch(`${HASURA_GRAPHQL_ENDPOINT}`, {
         method: 'POST',
