@@ -1,0 +1,8 @@
+create table Record (
+	RecordID BIGSERIAL NOT NULL PRIMARY KEY,
+	Accuracy DECIMAL(5,2) NOT NULL,
+	PictureURL VARCHAR(500) NOT NULL,
+	PatientID VARCHAR(50) NOT NULL REFERENCES Patient (PatientID),
+	DiseaseID INT NOT NULL REFERENCES Disease (DiseaseID),
+	RecordTime TIMESTAMP NOT NULL
+);
