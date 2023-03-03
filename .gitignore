@@ -16,4 +16,4 @@ web-build/
 # Custom ignore
 mock_data/
 .env*
-
+psql*
