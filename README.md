@@ -24,6 +24,19 @@ framework for developing our graphical interface. The details of our core librar
 - react-native-paper: UI library, providing Material UI styled components
 - react-navigation: routing and navigation for Expo and React Native apps
 
+### 3. Skin Disease Detection API
+
+The skin disease detection system that our team develops and is integrated in our 
+app utilizes a combination of a Deep Learning model (DenseNet, InceptionNet, ResNet, 
+etc) with Soft-Attention, which unsupervisedly extract a heat map of main skin lesions
+to identify patterns associated with different diseases.
+
+Details about our skin diseases detection system can be found in this paper:
+
+Nguyen, V.D.; Bui, N.D.; Do, H.K. Skin Lesion Classification on Imbalanced Data 
+Using Deep Learning with Soft Attention. Sensors 2022, 22, 7530. 
+https://doi.org/10.3390/s2219753
+
 ## Demo
 
 ### 1. Login/Register Screens
